@@ -15,7 +15,7 @@ function forward(f::Reshape, x)
 end
 
 function backward(f::Reshape, gys)
-    return reshape(gys, f.in_shape)
+    return [reshape(gys[1], f.in_shape)]
 end
 
 Base.reshape(x::Variable, shape) = Reshape(shape)(x)
