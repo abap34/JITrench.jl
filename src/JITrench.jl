@@ -11,6 +11,12 @@ include("core/operators.jl")
 include("core/propagation.jl")
 include("core/math_functions.jl")
 
+include("arr/reshape.jl")
+include("arr/transpose.jl")
+include("arr/sum.jl")
+include("arr/broadcast.jl")
+
+
 include("utils/out.jl")
 include("utils/plot.jl")
 
