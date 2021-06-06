@@ -4,6 +4,7 @@ using StatsBase
 using Printf
 using JITrench
 
+include("test_utils.jl")
 
 
 function generate_expr(N)
@@ -12,14 +13,7 @@ function generate_expr(N)
     randarg() = rand() > 0.5 ? "x" : randnum()
     S = "$(randarg()) $(randop()) $(randarg())"
     N = 10
-    for i in 1:N
-        x1, x2 = randnum(), randnum()
-        op = randop()
-        if op == "^"
-            x2 = rand(1:10)
-        elseif op == "/"
-            x2 = randnum() 
-        end
+    for _ in 1:N
         S = "($S) $(randop()) $(randarg())"
     end
     return S
@@ -125,4 +119,52 @@ funcitons = [
             end
         end
     end  
+end
+
+
+
+@testset "ArrOperateTest" begin
+    max_size = 120
+    @testset "forward" begin
+        @testset "reshape" begin
+            for _ in 1:N_TEST_COUNT
+                in_shape, out_shape = generate_shape(rand(1:max_size))
+                x = rand(in_shape...)
+                y_arr = reshape(x, out_shape)
+                y_var = reshape(Variable(x), out_shape)
+                @test y_arr == y_var.values
+            end
+        end
+        @testset "transpose" begin
+            for _ in 1:N_TEST_COUNT
+                in_shape, out_shape = generate_shape(rand(1:max_size), max_dim=2)
+                x = rand(in_shape...)
+                y_arr = transpose(x)
+                y_var = transpose(Variable(x))
+                @test y_arr == y_var.values
+            end
+        end
+    end 
+    @testset "backward" begin
+        @testset "reshape" begin
+            for _ in 1:N_TEST_COUNT
+                in_shape, out_shape = generate_shape(rand(1:max_size))
+                x = Variable(rand(in_shape...))
+                y = reshape(x, out_shape)
+                backward!(y)
+                @test y.grad.values == ones(size(y.values))
+                @test x.grad.values == ones(size(x.values))
+            end
+        end
+        @testset "transpose" begin
+            for _ in 1:N_TEST_COUNT
+                in_shape, out_shape = generate_shape(rand(1:max_size), min_dim=2, max_dim=2)
+                x = Variable(rand(in_shape...))
+                y = JITrench.transpose(x)
+                backward!(y)
+                @test y.grad.values == ones(size(y.values))
+                @test x.grad.values == ones(size(x.values))
+            end
+        end
+    end
 end
