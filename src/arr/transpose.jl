@@ -5,12 +5,11 @@ mutable struct Transpose <: Functional
 end
 
 function forward(::Transpose, x)
-    out = transpose(x)
-    return [out]
+    return transpose(x)
 end
 
 function backward(::Transpose, gys)
-    return [(transpose(gys))]
+    return transpose(gys)
 end
 
 Base.transpose(x::Variable) = Transpose(GradField())(x)
