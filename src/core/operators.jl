@@ -37,11 +37,11 @@ end
 
 
 function backward(::Add, gys)
-    return [1, 1] .* gys
+    return (gys, gys)
 end
 
 function backward(::Sub, gys)
-    return [1, -1] .* gys
+    return (gys, -gys)
 end
 
 function backward(::Neg, gys)
@@ -50,17 +50,17 @@ end
 
 function backward(f::Mul, gys)
     x1, x2 = f.grad_field.inputs
-    return [x2, x1] .* gys
+    return (x2 * gys, x1 * gys) 
 end
 
 function backward(f::Div, gys)
     x1, x2 = f.grad_field.inputs
-    return [1 / x2, -x1 / (x2^2)] .* gys
+    return (1 / x2) * gys, (-x1 / (x2^2)) * gys 
 end
 
 function backward(f::Pow, gys)
     x, c = f.grad_field.inputs[1], f.c    
-    return [c * (x^(c - 1)),] .* gys
+    return (c * (x^(c - 1))) * gys
 end
 
 

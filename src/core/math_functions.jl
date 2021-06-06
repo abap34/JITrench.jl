@@ -11,22 +11,22 @@ mutable struct Tan <: Functional
 end
 
 @inline forward(::Sin, x) = sin(x)
-@inline forward(::Cos, x) = sin(x)
+@inline forward(::Cos, x) = cos(x)
 @inline forward(::Tan, x) = tan(x)
 
 function backward(f::Sin, gys)
     x = f.grad_field.inputs[1]
-    return x .* gys
+    return cos(x) * gys
 end
 
 function backward(f::Cos, gys)
     x = f.grad_field.inputs[1]
-    return -sin(x) .* gys
+    return -sin(x) * gys
 end
 
 function backward(f::Tan, gys)
     x = f.grad_field.inputs[1]
-    return (1 / (cos(x))^2) .* gys
+    return (1 / (cos(x)^2)) * gys
 end
 
 Base.sin(x::Variable) = Sin(GradField())(x)
