@@ -2,11 +2,11 @@ mutable struct Sin <: Functional
     grad_field :: GradField
 end
 
-mutable struct Cos <: Function
+mutable struct Cos <: Functional
     grad_field :: GradField
 end
 
-mutable struct Tan <: Function
+mutable struct Tan <: Functional
     grad_field :: GradField
 end
 
