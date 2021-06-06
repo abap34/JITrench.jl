@@ -20,6 +20,3 @@ Base.convert(::Type{Variable}, x::AbstractArray) = Variable(x)
 Base.convert(::Type{Variable}, x::Real) = Variable(x)
 
 Base.convert(::Type{Variable}, x::Variable) = x
-
-Base.length(x::Variable) = length(x.values)
-
