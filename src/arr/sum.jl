@@ -22,8 +22,12 @@ end
 
 # wrapper of Base.sum: this function enabales `Base.sum` to use dims, keepdims
 function _sum(x; dims=nothing, keepdims=false)
-    result = (dims isa Nothing ? Base.sum(x) : Base.sum(x, dims=dims))
-    keepdims && (result = set_same_dim(result, ndims(x)))
+    if dims isa Nothing
+        result = Base.sum(x)
+        keepdims && (result = set_same_dim(result, ndims(x)))
+    else
+        result = Base.sum(x, dims=dims)
+    end
     return result
 end
 
@@ -32,8 +36,8 @@ function forward(f::Sum, x)
     return [_sum(x, dims=f.dims, keepdims=f.keepdims)]
 end
 
-function backward(f::Sum, gys)
-    return [broadcast_to(gys[1].values, f.x_shape)]
+function backward(f::Sum, gy)
+    return [broadcast_to(gy[1].values, f.x_shape)]
 end
 
 sum(x::Variable; dims=nothing, keepdims=false) = Sum(dims, keepdims)(x)
