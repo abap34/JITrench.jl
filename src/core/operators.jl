@@ -36,31 +36,31 @@ end
 @inline forward(f::Pow, x) = x^(f.c) 
 
 
-function backward(::Add, gys)
-    return (gys, gys)
+function backward(::Add, gy)
+    return (gy, gy)
 end
 
-function backward(::Sub, gys)
-    return (gys, -gys)
+function backward(::Sub, gy)
+    return (gy, -gy)
 end
 
-function backward(::Neg, gys)
-    return -gys
+function backward(::Neg, gy)
+    return -gy
 end
 
-function backward(f::Mul, gys)
+function backward(f::Mul, gy)
     x1, x2 = f.grad_field.inputs
-    return (x2 * gys, x1 * gys) 
+    return (x2 .* gy, x1 .* gy) 
 end
 
-function backward(f::Div, gys)
+function backward(f::Div, gy)
     x1, x2 = f.grad_field.inputs
-    return (1 / x2) * gys, (-x1 / (x2^2)) * gys 
+    return (1 / x2) * gy, (-x1 / (x2^2)) * gy 
 end
 
-function backward(f::Pow, gys)
-    x, c = f.grad_field.inputs[1], f.c    
-    return (c * (x^(c - 1))) * gys
+function backward(f::Pow, gy)
+    x, c = f.grad_field.inputs[1], f.c   
+    return (c * (x^(c - 1))) * gy
 end
 
 

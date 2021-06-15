@@ -1,32 +1,32 @@
 mutable struct Sin <: Functional
-    grad_field :: GradField
+    grad_field::GradField
 end
 
 mutable struct Cos <: Functional
-    grad_field :: GradField
+    grad_field::GradField
 end
 
 mutable struct Tan <: Functional
-    grad_field :: GradField
+    grad_field::GradField
 end
 
 @inline forward(::Sin, x) = sin(x)
 @inline forward(::Cos, x) = cos(x)
 @inline forward(::Tan, x) = tan(x)
 
-function backward(f::Sin, gys)
+function backward(f::Sin, gy)
     x = f.grad_field.inputs[1]
-    return cos(x) * gys
+    return cos(x) * gy
 end
 
-function backward(f::Cos, gys)
+function backward(f::Cos, gy)
     x = f.grad_field.inputs[1]
-    return -sin(x) * gys
+    return -sin(x) * gy
 end
 
-function backward(f::Tan, gys)
+function backward(f::Tan, gy)
     x = f.grad_field.inputs[1]
-    return (1 / (cos(x)^2)) * gys
+    return (1 / (cos(x)^2)) * gy
 end
 
 Base.sin(x::Variable) = Sin(GradField())(x)

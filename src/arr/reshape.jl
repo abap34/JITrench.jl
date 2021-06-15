@@ -1,7 +1,7 @@
 import Base
 
 mutable struct Reshape <: Functional
-    grad_field :: GradField
+    grad_field::GradField
     in_shape
     out_shape
     Reshape(shape) = new(GradField(), nothing, shape)
@@ -12,8 +12,8 @@ function forward(f::Reshape, x)
     return reshape(x, f.out_shape)
 end
 
-function backward(f::Reshape, gys)
-    return reshape(gys, f.in_shape)
+function backward(f::Reshape, gy)
+    return reshape(gy, f.in_shape)
 end
 
 Base.reshape(x::Variable, shape) = Reshape(shape)(x)

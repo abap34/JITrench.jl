@@ -16,7 +16,7 @@ end
 
 
 function backward!(var::Variable)
-    funcs = DataStructures.PriorityQueue{Functional, Int}()
+    funcs = DataStructures.PriorityQueue{Functional,Int}()
     seen_set = Set{Functional}()
 
     if var.grad isa Nothing
@@ -28,14 +28,14 @@ function backward!(var::Variable)
     
     while !(isempty(funcs))
         f = DataStructures.dequeue!(funcs)
-        gys = [output.grad for output in f.grad_field.outputs]
+        gy = [output.grad for output in f.grad_field.outputs]
 
-        gxs = backward(f, gys...)
+        gxs = backward(f, gy...)
         gxs = as_tuple(gxs)
         
         for (x, gx) in zip(f.grad_field.inputs, gxs)
             if x.grad isa Nothing
-                x.grad = gx
+            x.grad = gx
             else
                 x.grad = x.grad + gx
             end

@@ -10,8 +10,8 @@ function forward(::Transpose, x)
     return transpose(x) 
 end
 
-function backward(f::Transpose, gys)
-    gx = transpose(gys)
+function backward(f::Transpose, gy)
+    gx = transpose(gy)
     if f.in_is_vector
         gx.values = gx.values[:]
     end
