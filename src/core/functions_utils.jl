@@ -16,9 +16,10 @@ function cleargrad!(var::Variable)
 end
 
 
-function as_arr(x::T)::AbstractArray{T} where T <: Real 
+function as_arr(x)
     return [x]
 end
+
 
 function as_arr(x::AbstractArray)
     return x
@@ -31,5 +32,3 @@ end
 function as_tuple(x::Tuple)
     return x
 end
-
-
