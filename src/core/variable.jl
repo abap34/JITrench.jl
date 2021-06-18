@@ -9,9 +9,9 @@ mutable struct Variable <: TrenchObject
     generation 
     name 
     function Variable(values; creator=nothing, grad=nothing, generation=0, name=nothing)      
-        if values isa Number
-            values = [values]
-        end
+        # if values isa Number
+        #     values = [values]
+        # end
         new(values, creator, grad, generation, name)
     end
 end

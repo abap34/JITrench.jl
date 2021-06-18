@@ -35,7 +35,12 @@ function backward!(var::Variable)
         
         for (x, gx) in zip(f.grad_field.inputs, gxs)
             if x.grad isa Nothing
-            x.grad = gx
+                if x.values isa Number
+                    gx.values = gx.values[1]
+                    x.grad = gx
+                else
+                    x.grad = gx
+                end
             else
                 x.grad = x.grad + gx
             end
