@@ -1,15 +1,18 @@
-import Base 
-
+import Base
 
 mutable struct Broadcasting <: Functional
     f
     true_func
     grad_field::GradField
+    Broadcasting(f, true_func) = new(f, true_func, GradField()) 
 end
 
-Base.broadcasted(f, x::Variable...) = Broadcasting(f, nothing, GradField())(x...)
-Base.broadcasted(f, x1::Variable, x2::Real) = Broadcasting(f, nothing, GradField())(f, x1, x2)
-Base.broadcasted(f, x1::Real, x2::Variable) = Broadcasting(f, nothing, GradField())(f, x1, x2)
+Base.broadcasted(f, x::Variable...) = Broadcasting(f, nothing)(x...)
+Base.broadcasted(f, x1::Variable, x2) = Broadcasting(f, nothing)(x1, Variable(x2))
+Base.broadcasted(f, x1, x2::Variable) = Broadcasting(f, nothing)(Variable(x1), x2)
+
+
+
 
 _op_to_jt_struct = Dict(
     (+) => :Add, 
@@ -25,9 +28,16 @@ end
 
 
 function backward(f::Broadcasting, gy)
-    f.true_func = eval(_op_to_jt_struct[f.f])(GradField())
-    f.true_func.grad_field.inputs = f.grad_field.inputs
-    if length(f.grad_field.inputs) == 2
+    if isnothing(f.true_func)
+        if f.f == ^
+            f.true_func = Pow(GradField(), f.grad_field.inputs[2])
+            f.true_func.grad_field.inputs = as_arr(f.grad_field.inputs[1])
+        else
+            f.true_func = eval(_op_to_jt_struct[f.f])(GradField())
+            f.true_func.grad_field.inputs = f.grad_field.inputs
+        end
+    end
+    if f.f != ^ 
         x1 = f.grad_field.inputs[1]
         x2 = f.grad_field.inputs[2]
         gx1, gx2 = backward(f.true_func, gy)
@@ -40,6 +50,8 @@ function backward(f::Broadcasting, gy)
         end
         return gx1, gx2
     else
-        throw(DomainError("one arg broadcast is not allowed in current version."))
+        x = f.grad_field.inputs[1]
+        gx1 = backward(f.true_func, gy)
+        return gx1
     end
 end
