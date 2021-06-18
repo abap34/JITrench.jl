@@ -8,7 +8,7 @@ include("test_utils.jl")
 
 operators = [+, -, /, *, ^]
 
-N_TEST_COUNT = 10
+N_TEST_COUNT = 100
 
 @testset "OperatorTest" begin
     @testset "ForwardTest" begin
