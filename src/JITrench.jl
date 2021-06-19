@@ -17,6 +17,7 @@ include("arr/sum.jl")
 include("arr/sum_to.jl")
 include("arr/broadcast_to.jl")
 include("arr/broadcast.jl")
+include("arr/matmul.jl")
 
 include("utils/out.jl")
 include("utils/plot.jl")
