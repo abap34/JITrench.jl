@@ -8,17 +8,7 @@ JITrench
 
 ##### <b>Let's dive with JITrench.jl into the deep trench of the loss function.</b>
 
-```julia
-$ julia                                                   
-               _
-   _       _ _(_)_     |  Documentation: https://docs.julialang.org
-  (_)     | (_) (_)    |
-   _ _   _| |_  __ _   |  Type "?" for help, "]?" for Pkg help.
-  | | | | | | |/ _` |  |
-  | | |_| | | | (_| |  |  Version 1.6.0 (2021-03-24)
- _/ |\__'_|_|_|\__'_|  |  Official https://julialang.org/ release
-|__/                   |
-
+```julia                                                 
 julia> using JITrench
 [ Info: Precompiling JITrench [573e55e6-eb53-4bcf-a884-6670806246ed]
 
