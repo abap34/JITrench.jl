@@ -7,7 +7,7 @@ JITrench
   <img src=https://cdn.discordapp.com/attachments/810478331790491681/855696564952367134/unknown.png  width=250><br/>
   <img src=https://cdn.discordapp.com/attachments/810478331790491681/855763093072904192/unknown.png width=400>
 </h1>
-<p align="center">JITrench.jl is lightweight, <br>scalable, <br>and all the action is in your hands.<br><b>Let's dive into the deep trench of the loss function. <br>with JITrench.jl.</b></p>
+<p align="center">JITrench.jl is lightweight, <br>scalable, <br>and all the action is in your hands.<br>Let's dive into the deep trench of the loss function, <br>with JITrench.jl.</b></p>
 
 
 
