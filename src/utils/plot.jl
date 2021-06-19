@@ -39,9 +39,6 @@ end
 
 function _dot_func(f::Functional)
     f_type = typeof(f)
-    if f_type == JITrench.Functional.Pow
-        f_type = "$(f_type)($(f.c))"
-    end
     txt = "$(objectid(f)) [label=\"$(f_type)\", color=lightblue, style=filled, shape=box]\n"
     for x in f.inputs
         txt *= "$(objectid(x)) -> $(objectid(f))\n"
