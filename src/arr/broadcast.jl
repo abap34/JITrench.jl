@@ -39,7 +39,7 @@ function backward(f::Broadcasting, gy)
         # println("broadcast!")
         # println("gx1 used sum_to to change $(size(gx1.values)) -> $(size(x1.values))")
         # println("gx2 used sum_to to change $(size(gx2.values)) -> $(size(x2.values))")
-        # gx1 = sum_to(gx1, size(x1.values))
+        gx1 = sum_to(gx1, size(x1.values))
         gx2 = sum_to(gx2, size(x2.values))
     end
     return gx1, gx2
