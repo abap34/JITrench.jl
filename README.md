@@ -1,17 +1,25 @@
-JITrench
+# JITrench
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://abap34.github.io/JITrench.jl/stable)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://abap34.github.io/JITrench.jl/dev)
-[![Build Status](https://travis-ci.com/abap34/JITrench.jl.svg?branch=master)](https://travis-ci.com/abap34/JITrench.jl)
+
 <h1 align="center">
   <img src=https://cdn.discordapp.com/attachments/810478331790491681/855768153913425930/unknown.png  width=450><br/>
   <img src=https://cdn.discordapp.com/attachments/810478331790491681/855763093072904192/unknown.png width=400>
 </h1>
 <p align="center">JITrench.jl is lightweight, <br>scalable, <br>and all the action is in your hands.<br>Let's dive into the deep trench of the loss function, <br>with JITrench.jl.</b></p>
 
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://abap34.github.io/JITrench.jl/stable)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://abap34.github.io/JITrench.jl/dev)
+[![Build Status](https://travis-ci.com/abap34/JITrench.jl.svg?branch=master)](https://travis-ci.com/abap34/JITrench.jl)
 
 
+---
 
+## Install
+```
+]add https://github.com/abap34/JITrench.jl
+```
+
+## First Step
 ```julia                                                 
 julia> using JITrench
 [ Info: Precompiling JITrench [573e55e6-eb53-4bcf-a884-6670806246ed]
