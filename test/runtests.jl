@@ -34,7 +34,8 @@ end
 funcitons = [
     sin,
     cos,
-    tan
+    tan,
+    log
 ]
 
 @testset "MathFuncTest" begin
