@@ -21,23 +21,12 @@ N_TEST_COUNT = 100
         end
     end
     @testset "backwardTest" begin
-        # test without ^
         for i in 1:N_TEST_COUNT
-            for op in operators[1:end-1]
+            for op in operators
                 x1 = rand()
                 x2 = rand()
                 @test isAbout(backward_diff(op, [x1, x2]), numerical_diff(op, [x1, x2]))
             end
-            # test ^
-            x1 = rand()
-            x2 = rand(1:10)
-            f(x) = x ^ x2
-            num_grad = numerical_diff(f, x1)
-            x1 = Variable(x1)
-            x2 = Variable(x2)
-            y = x1 ^ x2
-            backward!(y)
-            @test isAbout(x1.grad.values, num_grad)
         end
     end
 end
