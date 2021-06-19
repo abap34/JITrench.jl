@@ -24,7 +24,6 @@ end
 
 mutable struct Pow <: Functional
     grad_field::GradField 
-    c
 end
 
 
@@ -33,7 +32,7 @@ end
 @inline forward(::Neg, x) = -x
 @inline forward(::Mul, x1, x2) = x1 * x2
 @inline forward(::Div, x1, x2) = x1 / x2
-@inline forward(f::Pow, x) = x^(f.c) 
+@inline forward(f::Pow, x1, x2) = x1^x2 
 
 
 function backward(::Add, gy)
@@ -59,8 +58,8 @@ function backward(f::Div, gy)
 end
 
 function backward(f::Pow, gy)
-    x, c = f.grad_field.inputs[1], f.c   
-    @. return (c * (x^(c - 1))) * gy
+    x, c = f.grad_field.inputs  
+    @. return (c * (x^(c - 1))) * gy, (x^c * (log(x))) * gy
 end
 
 
@@ -69,7 +68,7 @@ sub(x1::Variable, x2::Variable) = Sub(GradField())(x1, x2)
 neg(x::Variable) = Neg(GradField())(x)
 mul(x1::Variable, x2::Variable) = Mul(GradField())(x1, x2)
 div(x1::Variable, x2::Variable) = Div(GradField())(x1, x2)
-pow(x1::Variable, x2::Variable) = Pow(GradField(), x2.values)(x1)
+pow(x1::Variable, x2::Variable) = Pow(GradField())(x1, x2)
 
 
 const operators = Dict(
