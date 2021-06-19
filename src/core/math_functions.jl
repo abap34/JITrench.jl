@@ -23,23 +23,23 @@ end
 
 function backward(f::Sin, gy)
     x = f.grad_field.inputs[1]
-    return cos(x) * gy
+    @. return cos(x) * gy
 end
 
 function backward(f::Cos, gy)
     x = f.grad_field.inputs[1]
-    return -sin(x) * gy
+    @. return -sin(x) * gy
 end
 
 function backward(f::Tan, gy)
     x = f.grad_field.inputs[1]
-    return (1 / (cos(x)^2)) * gy
+    @. return (1 / (cos(x)^2)) * gy
 end
 
 
 function backward(f::Log, gy)
     x = f.grad_field.inputs[1]
-    return gy / x    
+    @. return gy / x    
 end
 
 Base.sin(x::Variable) = Sin(GradField())(x)
