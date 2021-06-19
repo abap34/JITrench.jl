@@ -33,11 +33,11 @@ end
 
 function forward(f::Sum, x)
     f.x_shape = size(x)
-    return [_sum(x, dims=f.dims, keepdims=f.keepdims)]
+    return _sum(x, dims=f.dims, keepdims=f.keepdims)
 end
 
 function backward(f::Sum, gy)
-    return [broadcast_to(gy[1].values, f.x_shape)]
+    return broadcast_to(gy, f.x_shape)
 end
 
 sum(x::Variable; dims=nothing, keepdims=false) = Sum(dims, keepdims)(x)
