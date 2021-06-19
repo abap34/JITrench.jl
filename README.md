@@ -9,7 +9,7 @@ JITrench
 ##### <b>Let's dive with JITrench.jl into the deep trench of the loss function.</b>
 
 ```julia
-MacBookPro $ julia                                                   
+$ julia                                                   
                _
    _       _ _(_)_     |  Documentation: https://docs.julialang.org
   (_)     | (_) (_)    |
@@ -42,4 +42,3 @@ name: nothing
 values: 17
 creator: JITrench.Add
 ```
-
