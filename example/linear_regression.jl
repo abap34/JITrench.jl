@@ -1,7 +1,7 @@
 using JITrench 
 using Random
 using Printf
-using Plots
+using UnicodePlots
 
 
 
@@ -9,7 +9,7 @@ Random.seed!(10)
 
 function generate_datset(N)
     x = rand(N) * 10
-    y = 2x .+ 3 .+ rand(N)
+    y = 2x .+ 3 .+ (rand(N) .* 5)
     return x, y
 end
 
@@ -51,6 +51,12 @@ b = 1
 n_iters = 100
 
 W_trained, b_trained = train(x, y, W, b, n_iters)
+
+
+println("finish train.")
 @show W_trained
 @show b_trained
+
+plt = scatterplot(x, y, color=:red, name="data")
+lineplot!(plt, 1:0.1:10, predict(Variable(collect(1:0.1:10)), W_trained, b_trained).values, name="predict")
 
