@@ -50,7 +50,6 @@ function backward(f::Broadcasting, gy)
         end
         return gx1, gx2
     else
-        x = f.grad_field.inputs[1]
         gx1 = backward(f.true_func, gy)
         return gx1
     end
