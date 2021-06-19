@@ -19,12 +19,12 @@ end
 
 
 function _dot_var(var::Variable, show_value)
-    name = (var.name == "") ? "" : var.name * ":"
-    value = (show_value == 0 ? var.data : var.grad.data)
-    if var.data !== nothing
+    name = (var.name === nothing) ? "" : var.name * ":"
+    value = (show_value == 0 ? var.values : var.grad.values)
+    if var.values !== nothing
         var_size = size(value)
         if isempty(var_size)
-            try var.data !== nothing
+            try var.values !== nothing
                 name *= "$(value)"
             catch
                 name *= "nothing"
@@ -40,10 +40,10 @@ end
 function _dot_func(f::Functional)
     f_type = typeof(f)
     txt = "$(objectid(f)) [label=\"$(f_type)\", color=lightblue, style=filled, shape=box]\n"
-    for x in f.inputs
+    for x in f.grad_field.inputs
         txt *= "$(objectid(x)) -> $(objectid(f))\n"
     end
-    for y in f.outputs
+    for y in f.grad_field.outputs
         txt *= "$(objectid(f)) -> $(objectid(y))\n"
     end
     return txt
@@ -54,13 +54,13 @@ end
 function get_dot_graph(var, show_value, title)
     txt = ""
     funcs = []
-    seen_set = Set{Func}()
+    seen_set = Set{Functional}()
     push!(funcs, var.creator)
     txt = _dot_var(var, show_value)
     while !(isempty(funcs))
         f = pop!(funcs)
         txt *= _dot_func(f)
-        for x in f.inputs
+        for x in f.grad_field.inputs
             txt *= _dot_var(x, show_value)
             if x.creator !== nothing && (!(x.creator in seen_set))
                 push!(seen_set, x.creator)
