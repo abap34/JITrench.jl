@@ -3,7 +3,7 @@ function _broadcast_to(A, shape)
     return zeros(shape) .+ A
 end
 
-mutable struct BroadcastTo
+mutable struct BroadcastTo <: Functional
     grad_field::GradField
     shape
     x_shape
@@ -25,6 +25,6 @@ function broadcast_to(x, shape)
     if size(x) == shape
         return Variable(shape)
     else
-        BroadcastTo(shape, size(x))(x)
+        return BroadcastTo(shape, size(x))(x)
     end
 end
