@@ -21,4 +21,6 @@ include("arr/broadcast.jl")
 include("utils/out.jl")
 include("utils/plot.jl")
 
+export Variable, backward!
+
 end
