@@ -27,7 +27,7 @@ function _dot_var(var::Variable, show_value)
             try var.values !== nothing
                 name *= "$(value)"
             catch
-                name *= "nothing"
+        name *= "nothing"
             end
         else    
             name *= "shape: $(var_size) \n type: $(get_value_type(value))"
@@ -37,7 +37,7 @@ function _dot_var(var::Variable, show_value)
 end
 
 
-function _dot_func(f::Functional)
+function _dot_func(f::DiffableFunction)
     f_type = typeof(f)
     txt = "$(objectid(f)) [label=\"$(f_type)\", color=lightblue, style=filled, shape=box]\n"
     for x in f.grad_field.inputs
@@ -54,7 +54,7 @@ end
 function get_dot_graph(var, show_value, title)
     txt = ""
     funcs = []
-    seen_set = Set{Functional}()
+    seen_set = Set{DiffableFunction}()
     push!(funcs, var.creator)
     txt = _dot_var(var, show_value)
     while !(isempty(funcs))
@@ -103,7 +103,7 @@ function plot_graph(var::Variable; to_file="", show_value="data", title="")
     
     if to_file == ""
         png_file_path = plot_tmp_dir(".png")
-        c = open(png_file_path) do io
+            c = open(png_file_path) do io
             PNGContainer(read(io))
         end
         return c

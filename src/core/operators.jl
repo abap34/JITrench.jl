@@ -1,28 +1,28 @@
 import Base
 
-mutable struct Add <: Functional
+mutable struct Add <: DiffableFunction
     grad_field::GradField
 end
 
-mutable struct Sub <: Functional
+mutable struct Sub <: DiffableFunction
     grad_field::GradField 
 end
 
-mutable struct Neg <: Functional
+mutable struct Neg <: DiffableFunction
     grad_field::GradField 
 end
 
-mutable struct Mul <: Functional
-    grad_field::GradField 
-end
-
-
-mutable struct Div <: Functional
+mutable struct Mul <: DiffableFunction
     grad_field::GradField 
 end
 
 
-mutable struct Pow <: Functional
+mutable struct Div <: DiffableFunction
+    grad_field::GradField 
+end
+
+
+mutable struct Pow <: DiffableFunction
     grad_field::GradField 
 end
 
@@ -54,7 +54,7 @@ end
 
 function backward(f::Div, gy)
     x1, x2 = f.grad_field.inputs
-    @. return (1 / x2) * gy, (-x1 / (x2*x2)) * gy 
+    @. return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy 
 end
 
 function backward(f::Pow, gy)

@@ -1,6 +1,6 @@
 import Base
 
-mutable struct Transpose <: Functional
+mutable struct Transpose <: DiffableFunction
     in_is_vector
     grad_field::GradField
     Transpose(in_shape, grad_field) = new(length(in_shape) == 1, grad_field)

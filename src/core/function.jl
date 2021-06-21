@@ -1,6 +1,4 @@
-import Base: Broadcast
-
-abstract type Functional <: TrenchObject end
+abstract type DiffableFunction <: TrenchObject end
 
 mutable struct GradField
     inputs

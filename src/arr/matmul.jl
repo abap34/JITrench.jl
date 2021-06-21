@@ -1,7 +1,7 @@
 import LinearAlgebra
 
-mutable struct MatMul <: Functional
-    grad_field :: GradField
+mutable struct MatMul <: DiffableFunction
+    grad_field::GradField
 end
 
 

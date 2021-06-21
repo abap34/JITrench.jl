@@ -1,6 +1,6 @@
 import Base
 
-mutable struct Broadcasting <: Functional
+mutable struct Broadcasting <: DiffableFunction
     f
     true_func
     grad_field::GradField

@@ -1,7 +1,7 @@
 # this will be overloaded in ./broadcast.jl
 function broadcast_to(arg...) end
 
-mutable struct Sum <: Functional
+mutable struct Sum <: DiffableFunction
     grad_field::GradField
     dims
     keepdims
