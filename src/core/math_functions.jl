@@ -1,16 +1,16 @@
-mutable struct Sin <: Functional
+mutable struct Sin <: DiffableFunction
     grad_field::GradField
 end
 
-mutable struct Cos <: Functional
+mutable struct Cos <: DiffableFunction
     grad_field::GradField
 end
 
-mutable struct Tan <: Functional
+mutable struct Tan <: DiffableFunction
     grad_field::GradField
 end
 
-mutable struct Log <: Functional
+mutable struct Log <: DiffableFunction
     grad_field::GradField
 end
 

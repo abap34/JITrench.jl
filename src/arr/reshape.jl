@@ -1,6 +1,6 @@
 import Base
 
-mutable struct Reshape <: Functional
+mutable struct Reshape <: DiffableFunction
     grad_field::GradField
     in_shape
     out_shape

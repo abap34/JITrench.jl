@@ -3,7 +3,7 @@ function _broadcast_to(A, shape)
     return zeros(shape) .+ A
 end
 
-mutable struct BroadcastTo <: Functional
+mutable struct BroadcastTo <: DiffableFunction
     grad_field::GradField
     shape
     x_shape

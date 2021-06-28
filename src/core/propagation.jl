@@ -1,7 +1,7 @@
 import DataStructures
 
 
-function (f::Functional)(vars...)
+function (f::DiffableFunction)(vars...)
     f_gradfield = f.grad_field
     f_gradfield.inputs = collect(vars)
 
@@ -16,8 +16,8 @@ end
 
 
 function backward!(var::Variable)
-    funcs = DataStructures.PriorityQueue{Functional,Int}()
-    seen_set = Set{Functional}()
+    funcs = DataStructures.PriorityQueue{DiffableFunction,Int}()
+    seen_set = Set{DiffableFunction}()
 
     if var.grad isa Nothing
         var.grad = Variable(ones_like(var.values))

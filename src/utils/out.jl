@@ -31,19 +31,18 @@ end
 
 
 
-#=
+#= 
 Type: JITrench.Mul
 GradField:
     input: $input
     output: $output
-    generation: $generation
-=#
-function Base.show(io::IO, f::Functional)
+    generation: $generation =#
+function Base.show(io::IO, f::DiffableFunction)
     print(io, typeof(f))
 end
 
 # REPL
-function Base.show(io::IO, ::MIME"text/plain", f::Functional) 
+function Base.show(io::IO, ::MIME"text/plain", f::DiffableFunction) 
     print(io,"""
     Type: $(typeof(f))
       GradField:
