@@ -3,13 +3,9 @@ import Base
 mutable struct Broadcasting <: DiffableFunction
     f
     true_func
-    grad_field::GradField
+    grad_field :: GradField
     Broadcasting(f, true_func) = new(f, true_func, GradField()) 
 end
-
-Base.broadcasted(f, x::Variable...) = Broadcasting(f, nothing)(x...)
-Base.broadcasted(f, x1::Variable, x2) = Broadcasting(f, nothing)(x1, Variable(x2))
-Base.broadcasted(f, x1, x2::Variable) = Broadcasting(f, nothing)(Variable(x1), x2)
 
 
 
@@ -27,16 +23,19 @@ _func_to_jt_struct = Dict(
 )
 
 
+for (func, jt_func) in _func_to_jt_struct
+    Base.broadcasted(::typeof(func), x::Variable...) = Broadcasting(func, jt_func(GradField()))(x...)
+    Base.broadcasted(::typeof(func), x1::Variable, x2) = Broadcasting(func, jt_func(GradField()))(x1, Variable(x2))
+    Base.broadcasted(::typeof(func), x1, x2::Variable) = Broadcasting(func, jt_func(GradField()))(Variable(x1), x2)
+end
+
 function forward(f::Broadcasting, x1...)
     return Base.materialize(Base.broadcasted(f.f, x1...))
 end
 
 
 function backward(f::Broadcasting, gy)
-    if isnothing(f.true_func)
-        f.true_func = _func_to_jt_struct[f.f](GradField())
-        f.true_func.grad_field.inputs = f.grad_field.inputs
-    end
+    f.true_func.grad_field = f.grad_field
     if length(f.grad_field.inputs) ==  1
         gx = backward(f.true_func, gy)
         return gx
