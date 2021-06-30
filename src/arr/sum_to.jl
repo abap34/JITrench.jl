@@ -37,7 +37,7 @@ function forward(f::SumTo, x)
 end
 
 function backward(f::SumTo, gy)
-    return [broadcast_to(gy, f.x_shape)]
+    return broadcast_to(gy, f.x_shape)
 end
 
 
