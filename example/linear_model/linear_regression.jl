@@ -63,5 +63,5 @@ plt = scatter(x, y, label=["data"])
 plot!(plt, 1:0.1:10, predict(Variable(collect(1:0.1:10)), W_trained, b_trained).values, label=["predict"])
 savefig("predict.png")
 
-plot(history, title="learning curve")
+plot(history, title="learning curve", yaxis=:log10)
 savefig("history.png")
