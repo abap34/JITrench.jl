@@ -6,6 +6,8 @@ using Plots
 
 Random.seed!(10)
 
+ENV["GKSwstype"] = "nul"
+
 function generate_datset(N)
     x = rand(N, 1) 
     y =  sin.(2π .* x) .+ (rand(N, 1) .* 0.5)
@@ -28,7 +30,8 @@ function mse(y_true, y_pred)
     return JITrench.sum(diff .^ 2) / length(diff.values)
 end
 
-function train(x, y, W1_init, b1_init, W2_init, b2_init, n_iter; lr=1e-1, log_interval=1000)
+function train(x, y, W1_init, b1_init, W2_init, b2_init, n_iter; lr=1e-1, log_interval=100)
+    anim = Animation()
     x = Variable(x)
     y = Variable(y)
     W1 = Variable(W1_init)
@@ -36,6 +39,7 @@ function train(x, y, W1_init, b1_init, W2_init, b2_init, n_iter; lr=1e-1, log_in
     W2 = Variable(W2_init)
     b2 = Variable(b2_init)
     history = []
+    pred_history = []
     for iter in 1:n_iter
         y_pred = predict(x, W1, b1, W2, b2)
         loss = mse(y, y_pred)
@@ -51,9 +55,14 @@ function train(x, y, W1_init, b1_init, W2_init, b2_init, n_iter; lr=1e-1, log_in
         push!(history, loss.values)
         if (iter - 1) % log_interval == 0
             @printf "iters %4i [loss] %.2f\n" iter loss.values 
+            _x = reshape(collect(0:0.01:1), :, 1)
+            y_pred = predict(Variable(_x), W1, b1, W2, b2).values
+            plt = scatter(x.values, y.values, label="data")
+            plot!(plt, 0:0.01:1, y_pred, title="[mse : $(loss.values)]", label="predict")
+            frame(anim, plt)
         end
     end
-    return W1, b1, W2, b2, history
+    return W1, b1, W2, b2, history, anim
 end
 
 x, y = generate_datset(100)
@@ -68,15 +77,11 @@ W2_init = 0.01 .* rand(hidden_dim, out_dim)
 b2_init = zeros(1, out_dim)
 n_iters = 20000
 
-W1_trained, b1_trained, W2_trained, b2_trained, history = train(x, y, W1_init, b1_init, W2_init, b2_init, n_iters)
+W1_trained, b1_trained, W2_trained, b2_trained, history, anim = train(x, y, W1_init, b1_init, W2_init, b2_init, n_iters)
 
 println("finish train.")
 
-plt = scatter(x, y, label="data")
-x = reshape(collect(0:0.01:1), :, 1)
-y_pred = predict(Variable(x), W1_trained, b1_trained, W2_trained, b2_trained).values
-plot!(plt, 0:0.01:1, y_pred, label="predict")
-savefig("predict.png")
+gif(anim, "fitting_history.gif", fps=10)
 
 plot(history, title="learning curve", yaxis=:log10)
-savefig("history.png")
+savefig("curve.png")
