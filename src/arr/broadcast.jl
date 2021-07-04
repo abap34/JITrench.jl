@@ -37,7 +37,7 @@ for (func, jt_func) in _func_to_jt_struct
 end
 
 function forward(f::Broadcasting, x...)
-    forward.(Ref(f.true_func), x...)
+    Base.materialize(Base.broadcasted(f.f, x...))
 end
 
 function forward(f::Broadcasting{typeof(^)}, x...)

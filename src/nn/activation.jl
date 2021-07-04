@@ -17,5 +17,5 @@ sigmoid(x::Variable) = Sigmoid(GradField())(x)
 
 get_jt_struct(::typeof(sigmoid)) = Sigmoid
 
-Base.broadcasted(::typeof(sigmoid), x::Variable)  = Broadcasting(sigmoid, Sigmoid(GradField()))(x)
+Base.broadcasted(::typeof(sigmoid), x::Variable)  = Broadcasting(_sigmoid, Sigmoid(GradField()))(x)
 
