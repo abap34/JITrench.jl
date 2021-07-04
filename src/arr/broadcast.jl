@@ -21,6 +21,7 @@ _func_to_jt_struct = Dict(
     (cos) => Cos,
     (tan) => Tan,
     (log) => Log,
+    (exp) => Exp
 )
 
 # fix https://github.com/abap34/JITrench.jl/issues/11
@@ -36,7 +37,7 @@ for (func, jt_func) in _func_to_jt_struct
 end
 
 function forward(f::Broadcasting, x...)
-    return Base.materialize(Base.broadcasted(f.f, x...))
+    forward.(Ref(f.true_func), x...)
 end
 
 function forward(f::Broadcasting{typeof(^)}, x...)
