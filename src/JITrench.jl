@@ -22,6 +22,10 @@ include("arr/matmul.jl")
 include("utils/out.jl")
 include("utils/plot.jl")
 
+
+
+include("nn/activation.jl")
+
 export Variable, backward!
 
 end
