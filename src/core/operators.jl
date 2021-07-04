@@ -29,11 +29,14 @@ end
 
 
 @inline forward(::Add, x1, x2)  = x1 + x2
+# case: a - b
 @inline forward(::Sub, x1, x2) = x1 - x2
+# case: -a
+@inline forward(::Sub, x) = -x
 @inline forward(::Neg, x) = -x
 @inline forward(::Mul, x1, x2) = x1 * x2
 @inline forward(::Div, x1, x2) = x1 / x2
-@inline forward(f::Pow, x1, x2) = x1^f.c
+@inline forward(f::Pow, x1) = x1^f.c
 
 
 function backward(::Add, gy)
