@@ -24,15 +24,19 @@ end
 
 mutable struct Pow <: DiffableFunction
     grad_field::GradField 
+    c
 end
 
 
 @inline forward(::Add, x1, x2)  = x1 + x2
+# case: a - b
 @inline forward(::Sub, x1, x2) = x1 - x2
+# case: -a
+@inline forward(::Sub, x) = -x
 @inline forward(::Neg, x) = -x
 @inline forward(::Mul, x1, x2) = x1 * x2
 @inline forward(::Div, x1, x2) = x1 / x2
-@inline forward(f::Pow, x1, x2) = x1^x2 
+@inline forward(f::Pow, x1) = x1^f.c
 
 
 function backward(::Add, gy)
@@ -58,8 +62,9 @@ function backward(f::Div, gy)
 end
 
 function backward(f::Pow, gy)
-    x, c = f.grad_field.inputs  
-    @. return (c * (x^(c - 1))) * gy, (x^c * (log(x))) * gy
+    x = f.grad_field.inputs[1]
+    c = f.c  
+    @. return (c * (x^(c - 1))) * gy
 end
 
 
@@ -68,25 +73,23 @@ sub(x1::Variable, x2::Variable) = Sub(GradField())(x1, x2)
 neg(x::Variable) = Neg(GradField())(x)
 mul(x1::Variable, x2::Variable) = Mul(GradField())(x1, x2)
 div(x1::Variable, x2::Variable) = Div(GradField())(x1, x2)
-pow(x1::Variable, x2::Variable) = Pow(GradField())(x1, x2)
+pow(x::Variable, c) = Pow(GradField(), c)(x)
 
 
-const operators = Dict(
+const normal_operators = Dict(
     :+ => :add, 
     :- => :sub, 
     :* => :mul,
     :/ => :div,
-    :^ => :pow
 )
 
 Base.:-(x::Variable) = neg(x)
+Base.:^(x::Variable, c) = pow(x, c)
 
-for (op, jt_func) in operators
+for (op, jt_func) in normal_operators
     @eval Base.$op(x1::Variable, x2::Real) = Base.$op(promote(x1, x2)...)
     @eval Base.$op(x1::Real, x2::Variable) = Base.$op(promote(x1, x2)...)
     @eval Base.$op(x1::Variable, x2::Variable) = $jt_func(x1, x2)
 end
-
-    
 
 

@@ -6,7 +6,7 @@ using JITrench
 
 include("test_utils.jl")
 
-operators = [+, -, /, *, ^]
+operators = [+, -, /, *]
 
 N_TEST_COUNT = 100
 
@@ -22,7 +22,7 @@ N_TEST_COUNT = 100
     end
     @testset "backwardTest" begin
         for i in 1:N_TEST_COUNT
-            for op in operators
+            for op in operators[1:end-1]
                 x1 = rand()
                 x2 = rand()
                 @test isAbout(backward_diff(op, [x1, x2]), numerical_diff(op, [x1, x2]))
@@ -35,7 +35,8 @@ funcitons = [
     sin,
     cos,
     tan,
-    log
+    log,
+    exp
 ]
 
 @testset "MathFuncTest" begin
@@ -57,6 +58,28 @@ funcitons = [
     end  
 end
 
+activations = Dict(
+    JITrench._sigmoid => JITrench.sigmoid 
+)
+
+@testset "ActivationTest" begin
+    @testset "ForwardTest" begin
+        for i in 1:N_TEST_COUNT
+            for (func, jt_func) in activations
+                x = rand()
+                isAbout(func(x), jt_func(Variable(x)).values)
+            end
+        end
+    end
+    @testset "backwardTest" begin
+        for i in 1:N_TEST_COUNT
+            for (func, jt_func) in activations
+                x = rand()
+                @test isAbout(backward_diff(jt_func, [x]), numerical_diff(func, [x]))
+            end
+        end
+    end  
+end
 
 
 @testset "ArrOperateTest" begin

@@ -22,9 +22,9 @@ end
 
 
 function broadcast_to(x, shape)
-    if size(x) == shape
+    if size(x.values) == shape
         return Variable(shape)
     else
-        return BroadcastTo(shape, size(x))(x)
+        return BroadcastTo(shape, size(x.values))(x)
     end
 end

@@ -48,9 +48,6 @@ function numerical_diff(f::Function, xs::AbstractArray; e=1e-7)
     return grads
 end
 
-function call_func_with_broadcast(op, arg...)
-    return Base.Broadcast.BroadcastFunction(op)(arg...)
-end
 
 function backward_diff(f, xs::AbstractArray)
     inputs = Variable.(xs)
