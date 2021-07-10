@@ -39,7 +39,6 @@ function train(x, y, W1_init, b1_init, W2_init, b2_init, n_iter; lr=1e-1, log_in
     W2 = Variable(W2_init)
     b2 = Variable(b2_init)
     history = []
-    pred_history = []
     for iter in 1:n_iter
         y_pred = predict(x, W1, b1, W2, b2)
         loss = mse(y, y_pred)

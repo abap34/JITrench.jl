@@ -22,8 +22,9 @@ include("arr/matmul.jl")
 include("utils/out.jl")
 include("utils/plot.jl")
 
-
-
+include("nn/utils.jl")
+include("nn/layers/layer.jl")
+include("nn/layers/linear.jl")
 include("nn/activation.jl")
 
 export Variable, backward!
