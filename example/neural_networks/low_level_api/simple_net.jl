@@ -42,16 +42,22 @@ function train(x, y, W1_init, b1_init, W2_init, b2_init, n_iter; lr=1e-1, log_in
     for iter in 1:n_iter
         y_pred = predict(x, W1, b1, W2, b2)
         loss = mse(y, y_pred)
+        if iter == 1
+            JITrench.plot_graph(loss, to_file="plot.png")
+        end
+        push!(history, loss.values)
+
         JITrench.cleargrad!(W1)
         JITrench.cleargrad!(b1)
         JITrench.cleargrad!(W2)
         JITrench.cleargrad!(b2)
         backward!(loss)
+
         W1.values -= W1.grad.values * lr
         b1.values -= b1.grad.values * lr
         W2.values -= W2.grad.values * lr
         b2.values -= b2.grad.values * lr
-        push!(history, loss.values)
+        
         if (iter - 1) % log_interval == 0
             @printf "iters %4i [loss] %.2f\n" iter loss.values 
             _x = reshape(collect(0:0.01:1), :, 1)
@@ -61,7 +67,7 @@ function train(x, y, W1_init, b1_init, W2_init, b2_init, n_iter; lr=1e-1, log_in
             frame(anim, plt)
         end
     end
-    return W1, b1, W2, b2, history, anim
+    return history, anim
 end
 
 x, y = generate_datset(100)
@@ -74,9 +80,9 @@ W1_init = 0.01 .* rand(input_dim, hidden_dim)
 b1_init = zeros(1, hidden_dim)
 W2_init = 0.01 .* rand(hidden_dim, out_dim)
 b2_init = zeros(1, out_dim)
-n_iters = 20000
+n_iters = 10000
 
-W1_trained, b1_trained, W2_trained, b2_trained, history, anim = train(x, y, W1_init, b1_init, W2_init, b2_init, n_iters)
+history, anim = train(x, y, W1_init, b1_init, W2_init, b1_init, n_iters)
 
 println("finish train.")
 
