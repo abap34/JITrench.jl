@@ -2,14 +2,17 @@ import Base
 
 abstract type Layer end
 
-
-
 function (layer::Layer)(x...)
     outputs = forward(layer, x...)
     return outputs
 end
-    
 
+
+function cleargrads!(layer::Layer)
+    for param in values(layer.param._dict)
+        cleargrad!(param)
+    end
+end
 mutable struct Parameters
     _dict
     Parameters() = new(Dict{Symbol, Variable}())
