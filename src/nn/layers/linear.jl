@@ -4,15 +4,15 @@ mutable struct Linear <: Layer
     param :: Parameters
     in_dim
     out_dim
-    initialized
     initial_method 
     function Linear(out_dim; in_dim=nothing, initial_method="xavier")
         if in_dim isa Nothing
-            layer = new(Parameters(), in_dim, out_dim, false, initial_method)
+            layer = new(Parameters(), in_dim, out_dim, initial_method)
+            layer.param.W = nothing
             layer.param.b = Variable(zeros(1, out_dim), name="b")
             return layer
         else
-            layer = new(Parameters(), in_dim, out_dim, true, initial_method)
+            layer = new(Parameters(), in_dim, out_dim, initial_method)
             layer.param.b = Variable(zeros(1, out_dim))
             if initial_method == "xavier"
                 W = xavier(in_dim, out_dim)
@@ -30,9 +30,8 @@ end
 
 
 function forward(layer::Linear, x)
-    if !(layer.initialized)
+    if layer.param.W isa Nothing
         layer.in_dim = size(x.values)[2]
-        layer.initialized = true
         if layer.initial_method == "xavier"
             W = xavier(layer.in_dim, layer.out_dim)
         elseif layer.initial_method == "he"
