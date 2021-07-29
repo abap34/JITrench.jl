@@ -15,7 +15,7 @@ function (f::DiffableFunction)(vars...)
 end
 
 
-function backward!(var::Variable)
+function backward!(var::Variable; retain_grad=false)
     funcs = DataStructures.PriorityQueue{DiffableFunction,Int}()
     seen_set = Set{DiffableFunction}()
 
@@ -49,9 +49,13 @@ function backward!(var::Variable)
                 push!(seen_set, x.creator)
                 DataStructures.enqueue!(funcs, x.creator, x.creator.grad_field.generation)
             end
-        
+        end
+
+        if !(retain_grad)
+            for y in f.grad_field.outputs
+                y.grad = nothing
+            end
         end
     end
     return nothing
 end
-

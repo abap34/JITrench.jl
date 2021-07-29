@@ -8,9 +8,6 @@ end
 
 Broadcasting(f, true_func) = Broadcasting(f, true_func, GradField()) 
 
-
-
-
 _func_to_jt_struct = Dict(
     (+) => Add, 
     (-) => Sub, 
@@ -23,6 +20,9 @@ _func_to_jt_struct = Dict(
     (log) => Log,
     (exp) => Exp
 )
+
+
+Base.broadcasted(::typeof(|>), x::Variable, f) = Base.broadcasted(f, x)
 
 # fix https://github.com/abap34/JITrench.jl/issues/11
 Base.broadcasted(::typeof(Base.literal_pow), ::typeof(^), x::Variable, ::Val{c}) where c = Broadcasting(^, Pow(GradField(), c))(x)
@@ -55,9 +55,6 @@ function backward(f::Broadcasting, gy)
         x2 = f.grad_field.inputs[2]
         gx1, gx2 = backward(f.true_func, gy)
         if size(x1.values) != size(x2.values)
-            # println("broadcast!")
-            # println("gx1 used sum_to to change $(size(gx1.values)) -> $(size(x1.values))")
-            # println("gx2 used sum_to to change $(size(gx2.values)) -> $(size(x2.values))")
             gx1 = sum_to(gx1, size(x1.values))
             gx2 = sum_to(gx2, size(x2.values))
         end

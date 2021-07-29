@@ -4,16 +4,16 @@ mutable struct Linear <: Layer
     param :: Parameters
     in_dim
     out_dim
-    lazy_init
     initial_method 
     function Linear(out_dim; in_dim=nothing, initial_method="xavier")
         if in_dim isa Nothing
-            linear = new(Parameters(), in_dim, out_dim, true, initial_method)
-            linear.param.b = Variable(zeros(1, out_dim))
-            return linear
+            layer = new(Parameters(), in_dim, out_dim, initial_method)
+            layer.param.W = nothing
+            layer.param.b = Variable(zeros(1, out_dim), name="b")
+            return layer
         else
-            linear = new(Parameters(), in_dim, out_dim, false, initial_method)
-            linear.param.b = Variable(zeros(1, out_dim))
+            layer = new(Parameters(), in_dim, out_dim, initial_method)
+            layer.param.b = Variable(zeros(1, out_dim), name="b")
             if initial_method == "xavier"
                 W = xavier(in_dim, out_dim)
             elseif initial_method == "he"
@@ -21,8 +21,8 @@ mutable struct Linear <: Layer
             else initial_method isa Function
                 W = initial_method(in_dim, out_dim)
             end    
-            self.param.W = Variable(W)
-            return linear
+            layer.param.W = Variable(W, name="W")
+            return layer
         end
     end
 end
@@ -30,17 +30,16 @@ end
 
 
 function forward(layer::Linear, x)
-    if layer.lazy_init
+    if layer.param.W isa Nothing
         layer.in_dim = size(x.values)[2]
-        layer.lazy_init = "done"
         if layer.initial_method == "xavier"
             W = xavier(layer.in_dim, layer.out_dim)
         elseif layer.initial_method == "he"
             W = he(layer.in_dim, layer.out_dim)
         else layer.initial_method isa Function
-            W = initial_method(layer.in_dim, layer.out_dim)
+            W = layer.initial_method(layer.in_dim, layer.out_dim)
         end   
-        layer.param.W = Variable(W)
+        layer.param.W = Variable(W, name="W")
     end 
     return linear(x, layer.param.W, layer.param.b)
 end

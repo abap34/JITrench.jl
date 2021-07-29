@@ -1,9 +1,5 @@
 module JITrench
 
-using Random
-
-Random.seed!(10)
-
 include("core/variable.jl")
 include("core/functions_utils.jl")
 include("core/function.jl")
@@ -25,7 +21,15 @@ include("utils/plot.jl")
 include("nn/utils.jl")
 include("nn/layers/layer.jl")
 include("nn/layers/linear.jl")
-include("nn/activation.jl")
+include("nn/activation/sigmoid.jl")
+include("nn/funcitons/loss/mean_squared_error.jl")
+
+include("nn/model.jl")
+
+include("nn/optimizer/optimizer.jl")
+include("nn/optimizer/sgd.jl")
+
+
 
 export Variable, backward!
 

@@ -9,8 +9,8 @@ function backward(f::Sigmoid, gy)
     @. return (y * (1 - y)) * gy
 end
 
-function _sigmoid(x)
-    1 / (1 + exp(-x))
+function _sigmoid(x::T) where T <: Real
+    one(T) / (one(T) + exp(-x))
 end
 
 sigmoid(x::Variable) = Sigmoid(GradField())(x)
@@ -18,4 +18,11 @@ sigmoid(x::Variable) = Sigmoid(GradField())(x)
 get_jt_struct(::typeof(sigmoid)) = Sigmoid
 
 Base.broadcasted(::typeof(sigmoid), x::Variable)  = Broadcasting(_sigmoid, Sigmoid(GradField()))(x)
+
+
+
+
+
+
+
 
