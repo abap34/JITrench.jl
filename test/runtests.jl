@@ -110,7 +110,7 @@ end
                 in_shape, out_shape = generate_shape(rand(1:max_size))
                 x = Variable(rand(in_shape...))
                 y = reshape(x, out_shape)
-                backward!(y)
+                backward!(y, retain_grad=true)
                 @test y.grad.values == ones(size(y.values))
                 @test x.grad.values == ones(size(x.values))
             end
@@ -120,7 +120,7 @@ end
                 in_shape, out_shape = generate_shape(rand(1:max_size), min_dim=2, max_dim=2)
                 x = Variable(rand(in_shape...))
                 y = JITrench.transpose(x)
-                backward!(y)
+                backward!(y, retain_grad=true)
                 @test y.grad.values == ones(size(y.values))
                 @test x.grad.values == ones(size(x.values))
             end
