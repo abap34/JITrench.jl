@@ -13,7 +13,7 @@ mutable struct Linear <: Layer
             return layer
         else
             layer = new(Parameters(), in_dim, out_dim, initial_method)
-            layer.param.b = Variable(zeros(1, out_dim))
+            layer.param.b = Variable(zeros(1, out_dim), name="b")
             if initial_method == "xavier"
                 W = xavier(in_dim, out_dim)
             elseif initial_method == "he"
