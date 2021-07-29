@@ -18,6 +18,17 @@ macro model(ex)
     end |> esc
 end
 
+#TODO: better impl(This is toooooooo slow)
+function parameters(model::Model)
+    params = []
+    for layer in Main.layers(model)
+        for (_, param) in parameters(layer)
+            push!(params, param)
+        end
+    end
+    return params
+end
+
 function cleargrads!(model::Model; skip_uninitialized=false)
     for layer in Main.layers(model)
         for (_, param) in parameters(layer)
@@ -33,3 +44,5 @@ function cleargrads!(model::Model; skip_uninitialized=false)
         end
     end
 end
+
+
