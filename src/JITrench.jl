@@ -1,5 +1,8 @@
 module JITrench
 
+include("utils/error.jl")
+
+
 include("core/variable.jl")
 include("core/functions_utils.jl")
 include("core/function.jl")
