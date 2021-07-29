@@ -20,20 +20,21 @@ end
 
 function _dot_var(var::Variable, show_value)
     name = (var.name === nothing) ? "" : var.name * ":"
-    value = (show_value == 0 ? var.values : var.grad.values)
+    value = (show_value != "grad" ? var.values : var.grad.values)
     if var.values !== nothing
         var_size = size(value)
         if isempty(var_size)
             try var.values !== nothing
-                name *= "$(value)"
+                name *= "\n$(value)"
             catch
-        name *= "nothing"
+                name *= "nothing"
             end
         else    
             name *= "shape: $(var_size) \n type: $(get_value_type(value))"
         end
     end
     dot_var = "$(objectid(var)) [label=\"$name\", color=orange, style=filled]\n"
+    return dot_var
 end
 
 
@@ -78,7 +79,7 @@ function get_dot_graph(var, show_value, title)
 end
 
 
-function plot_tmp_dir(extension)
+function plot_tmp_dir()
     extension = "png"
     to_file = joinpath(tmp_dir, "graph.png")       
     cmd = `dot $(dot_file_path) -T $(extension) -o $(to_file)`
@@ -86,15 +87,7 @@ function plot_tmp_dir(extension)
     return to_file
 end
 
-function plot_graph(var::Variable; to_file="", show_value="data", title="")
-    if show_value == "grad"
-        show_value = 1
-    elseif show_value == "data"
-        show_value = 0
-    else
-        error("The argument to show_value is invalid.")
-    end
-
+function plot_graph(var::Variable; to_file="", show_value="value", title="")
     dot_graph = get_dot_graph(var, show_value, title)
     (!(ispath(tmp_dir))) && (mkdir(tmp_dir))
     open(dot_file_path, "w") do io
@@ -102,7 +95,7 @@ function plot_graph(var::Variable; to_file="", show_value="data", title="")
     end
     
     if to_file == ""
-        png_file_path = plot_tmp_dir(".png")
+        png_file_path = plot_tmp_dir()
             c = open(png_file_path) do io
             PNGContainer(read(io))
         end

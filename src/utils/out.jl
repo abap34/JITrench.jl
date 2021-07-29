@@ -8,7 +8,7 @@ function get_output_str(var::Variable)
     if (var.creator !== nothing)
         output *= "creator: $(typeof(var.creator))"
     else
-        output *= "creator: User-Defined (nothing)"
+        output *= "creator: User-Defined(nothing)"
     end
     return output
 end
