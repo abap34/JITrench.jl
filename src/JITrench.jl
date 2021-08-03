@@ -1,5 +1,8 @@
 module JITrench
 
+using ResumableFunctions
+
+
 include("utils/error.jl")
 
 
@@ -17,6 +20,7 @@ include("arr/sum_to.jl")
 include("arr/broadcast_to.jl")
 include("arr/broadcast.jl")
 include("arr/matmul.jl")
+include("arr/getindex.jl")
 
 include("utils/out.jl")
 include("utils/plot.jl")
