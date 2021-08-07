@@ -17,16 +17,16 @@ macro model(ex)
     struct_name = ex.args[2].args[1]
     quote
         $ex
-        import JITrench
+        # import JITrench
         JITrench.layers(model::$(struct_name)) = getproperty.(Ref(model), $layer_fields)
     end |> esc
 end
 
-#TODO: better impl(This is toooooooo slow)
+#TODO: better impl
 function parameters(model::Model)
     params = []
     for layer in layers(model)
-        for (_, param) in parameters(layer)
+        for param in parameters(layer)
             push!(params, param)
         end
     end
@@ -35,7 +35,7 @@ end
 
 function cleargrads!(model::Model; skip_uninitialized=false)
     for layer in layers(model)
-        for (_, param) in parameters(layer)
+        for param in parameters(layer)
             if param isa Nothing
                 if skip_uninitialized
                     continue

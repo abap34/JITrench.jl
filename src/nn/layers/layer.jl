@@ -8,16 +8,20 @@ function (layer::Layer)(x...)
 end
 
 
-function parameters(layer::Layer; with_value=true)
-    if with_value
+function parameters(layer::Layer; value=true, key=false)
+    if value && key
         return layer.param._dict
-    else
+    elseif value && !(key)
+        return values(layer.param._dict)
+    elseif !(value) && key
         return keys(layer.param._dict)
+    else
+        throw(ArgumentError(""))
     end
 end
 
 function cleargrads!(layer::Layer)
-    for (_, param) in parameters(layer, with_value=true)
+    for param in parameters(layer)
         cleargrad!(param)
     end
 end
