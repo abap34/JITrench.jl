@@ -1,7 +1,5 @@
 module JITrench
 
-using ResumableFunctions
-
 
 include("utils/error.jl")
 
@@ -38,6 +36,6 @@ include("nn/optimizer/sgd.jl")
 
 
 
-export Variable, backward!
+export Variable, backward!, parameters
 
 end
