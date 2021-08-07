@@ -1,5 +1,9 @@
 module JITrench
 
+
+include("utils/error.jl")
+
+
 include("core/variable.jl")
 include("core/functions_utils.jl")
 include("core/function.jl")
@@ -14,6 +18,7 @@ include("arr/sum_to.jl")
 include("arr/broadcast_to.jl")
 include("arr/broadcast.jl")
 include("arr/matmul.jl")
+include("arr/getindex.jl")
 
 include("utils/out.jl")
 include("utils/plot.jl")
@@ -31,6 +36,6 @@ include("nn/optimizer/sgd.jl")
 
 
 
-export Variable, backward!
+export Variable, backward!, parameters
 
 end

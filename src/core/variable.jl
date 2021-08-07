@@ -9,9 +9,6 @@ mutable struct Variable <: TrenchObject
     generation 
     name 
     function Variable(values; creator=nothing, grad=nothing, generation=0, name=nothing)      
-        # if values isa Number
-        #     values = [values]
-        # end
         new(values, creator, grad, generation, name)
     end
 end
@@ -23,3 +20,5 @@ Base.convert(::Type{Variable}, x::AbstractArray) = Variable(x)
 Base.convert(::Type{Variable}, x::Real) = Variable(x)
 
 Base.convert(::Type{Variable}, x::Variable) = x
+
+Base.size(x::Variable) = size(x.values)
