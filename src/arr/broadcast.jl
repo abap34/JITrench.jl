@@ -52,7 +52,6 @@ end
 
 
 function backward(f::Broadcasting, gy)
-    @show f
     if length(f.grad_field.inputs) ==  1
         gx = backward(f.true_func, gy)
         return gx
