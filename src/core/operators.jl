@@ -39,57 +39,87 @@ end
 @inline forward(f::Pow, x1) = x1^f.c
 
 
-function backward(::Add, gy)
+function backward(::Add, gy::Variable{T}) where {T <: Real}
+    return (gy, gy)
+end
+
+function backward(::Add, gy::Variable{T}) where {T <: AbstractArray}
     @. return (gy, gy)
 end
 
-function backward(::Sub, gy)
-    @. return (gy, -gy)
+function backward(::Sub, gy::Variable{T}) where {T <: Real}
+    return (gy, -gy)
 end
 
-function backward(::Neg, gy)
+
+function backward(::Sub, gy::Variable{T}) where {T <: AbstractArray}
+    return (gy, -gy)
+end
+
+function backward(::Neg, gy::Variable{T})  where {T <: Real}
+    return -gy
+end
+
+function backward(::Neg, gy::Variable{T})  where {T <: AbstractArray}
     @. return -gy
 end
 
-function backward(f::Mul, gy)
+function backward(f::Mul, gy::Variable{T}) where {T <: Real}
+    @show x1
+    @show gy
+    x1, x2 = f.grad_field.inputs
+    return (x2 * gy, x1 * gy) 
+end
+
+function backward(f::Mul, gy::Variable{T}) where {T <: AbstractArray}
     x1, x2 = f.grad_field.inputs
     @. return (x2 .* gy, x1 .* gy) 
 end
 
-function backward(f::Div, gy)
+function backward(f::Div, gy::Variable{T})  where {T <: Real}
+    x1, x2 = f.grad_field.inputs
+    return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy 
+end
+
+function backward(f::Div, gy::Variable{T})  where {T <: AbstractArray}
     x1, x2 = f.grad_field.inputs
     @. return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy 
 end
 
-function backward(f::Pow, gy)
+
+function backward(f::Pow, gy::Variable{T})  where {T <: Real}
+    x = f.grad_field.inputs[1]
+    c = f.c  
+    return (c * (x^(c - 1))) * gy
+end
+
+
+function backward(f::Pow, gy::Variable{T})  where {T <: AbstractArray}
     x = f.grad_field.inputs[1]
     c = f.c  
     @. return (c * (x^(c - 1))) * gy
 end
 
-
-add(x1::Variable, x2::Variable) = Add(GradField())(x1, x2)
-sub(x1::Variable, x2::Variable) = Sub(GradField())(x1, x2)
-neg(x::Variable) = Neg(GradField())(x)
-mul(x1::Variable, x2::Variable) = Mul(GradField())(x1, x2)
-div(x1::Variable, x2::Variable) = Div(GradField())(x1, x2)
-pow(x::Variable, c) = Pow(GradField(), c)(x)
-
-
 const normal_operators = Dict(
-    :+ => :add, 
-    :- => :sub, 
-    :* => :mul,
-    :/ => :div,
+    :+ => Add,
+    :- => Sub, 
+    :* => Mul,
+    :/ => Div,
 )
 
-Base.:-(x::Variable) = neg(x)
-Base.:^(x::Variable, c) = pow(x, c)
+
+Base.:-(x::Variable) = Neg(GradField())(x)
+Base.:^(x::Variable, c) = Pow(GradField(), c)(x)
+is_support(::typeof(^)) = true
+get_jt_struct(::typeof(^)) = Pow
 
 for (op, jt_func) in normal_operators
+    @eval is_support(::typeof($op)) = true
+    @eval is_support_broadcast(::typeof($op)) = true
+    @eval get_jt_struct(::typeof($op)) = $jt_func
     @eval Base.$op(x1::Variable, x2::Real) = Base.$op(promote(x1, x2)...)
     @eval Base.$op(x1::Real, x2::Variable) = Base.$op(promote(x1, x2)...)
-    @eval Base.$op(x1::Variable, x2::Variable) = $jt_func(x1, x2)
+    @eval Base.$op(x1::Variable, x2::Variable) = $jt_func(GradField())(x1, x2)
 end
 
 

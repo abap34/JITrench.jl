@@ -2,9 +2,9 @@ import Base
 
 mutable struct Reshape <: DiffableFunction
     grad_field::GradField
-    in_shape
-    out_shape
-    Reshape(shape) = new(GradField(), nothing, shape)
+    in_shape :: Tuple
+    out_shape :: Tuple
+    Reshape(in_shape, out_shape) = new(GradField(), in_shape, out_shape)
 end
 
 function forward(f::Reshape, x)
@@ -16,4 +16,4 @@ function backward(f::Reshape, gy)
     return reshape(gy, f.in_shape)
 end
 
-Base.reshape(x::Variable, shape) = Reshape(shape)(x)
+Base.reshape(x::Variable, shape) = Reshape(size(x), shape)(x)

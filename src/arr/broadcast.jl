@@ -2,7 +2,7 @@ import Base
 
 mutable struct Broadcasting{F} <: DiffableFunction
     f :: F
-    true_func
+    true_func :: DiffableFunction
     grad_field :: GradField
 end
 
@@ -21,20 +21,26 @@ _func_to_jt_struct = Dict(
     (exp) => Exp
 )
 
-
 Base.broadcasted(::typeof(|>), x::Variable, f) = Base.broadcasted(f, x)
 
 # fix https://github.com/abap34/JITrench.jl/issues/11
 Base.broadcasted(::typeof(Base.literal_pow), ::typeof(^), x::Variable, ::Val{c}) where c = Broadcasting(^, Pow(GradField(), c))(x)
 Base.broadcasted(::typeof(^), x::Variable, c) = Broadcasting(^, Pow(GradField(), c))(x)
 
-# TODO: remove unnecessary def
 for (func, jt_func) in _func_to_jt_struct
     (func == ^) && (continue)
     Base.broadcasted(::typeof(func), x::Variable...) = Broadcasting(func, jt_func(GradField()))(x...)
     Base.broadcasted(::typeof(func), x1::Variable, x2) = Broadcasting(func, jt_func(GradField()))(x1, Variable(x2))
     Base.broadcasted(::typeof(func), x1, x2::Variable) = Broadcasting(func, jt_func(GradField()))(Variable(x1), x2)
 end
+
+
+# function Base.materialize!(x::Variable, casted_x::Variable)
+#     x.name = casted_x.name
+#     x.values = casted_x.values
+#     x.creator = casted_x.creator
+#     return x
+# end
 
 function forward(f::Broadcasting, x...)
     Base.materialize(Base.broadcasted(f.f, x...))
@@ -46,7 +52,7 @@ end
 
 
 function backward(f::Broadcasting, gy)
-    f.true_func.grad_field = f.grad_field
+    @show f
     if length(f.grad_field.inputs) ==  1
         gx = backward(f.true_func, gy)
         return gx

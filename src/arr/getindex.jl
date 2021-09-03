@@ -1,8 +1,7 @@
 mutable struct GetIndex <: DiffableFunction
     ind
-    in_shape
     grad_field :: GradField
-    GetIndex(ind, in_shape) = new(ind, in_shape, GradField())
+    GetIndex(ind) = new(ind, GradField())
 end
 
 function forward(f::GetIndex, x)
@@ -41,5 +40,29 @@ function backward(::GetIndexGrad, ggx)
     return GetIndex(ind, size(ggx))(ggx)
 end
 
+"""
+    Base.getindex(x::Variable, ind...)
+return `x.values[ind...]` as `Variable`.
 
-Base.getindex(x::Variable, ind) = GetIndex(ind, size(x))(x)
+# Examples
+```julia-repl
+julia> x = Variable(rand(2, 2))
+name: nothing 
+values: [0.7050007249265509 0.5075375401538957; 0.9953109600473362 0.8447135817368259]
+creator: User-Defined(nothing)
+
+julia> x[1, 2]
+name: nothing 
+values: 0.5075375401538957
+creator: JITrench.GetIndex
+
+julia> x[1, :]
+name: nothing 
+values: [0.7050007249265509, 0.5075375401538957]
+creator: JITrench.GetIndex
+```
+"""
+Base.getindex(x::Variable, ind...) = GetIndex(ind)(x)
+
+is_support(::typeof(Base.getindex)) = true
+get_jt_struct(::typeof(Base.getindex)) = GetIndex
