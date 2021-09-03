@@ -1,19 +1,17 @@
 include("../funcitons/linear.jl")
 
 mutable struct Linear <: Layer
-    param :: Parameters
-    in_dim
-    out_dim
-    initial_method 
+    W :: Union{Nothing, Variable}
+    b :: Union{Nothing, Variable}
+    in_dim :: Union{Nothing, Int}
+    out_dim :: Int
+    initial_method :: Union{String, Function}
     function Linear(out_dim; in_dim=nothing, initial_method="xavier")
         if in_dim isa Nothing
-            layer = new(Parameters(), in_dim, out_dim, initial_method)
-            layer.param.W = nothing
-            layer.param.b = Variable(zeros(1, out_dim), name="b")
+            b = Variable(zeros(1, out_dim), name="b")
+            layer = new(nothing, b, in_dim, out_dim, initial_method)
             return layer
         else
-            layer = new(Parameters(), in_dim, out_dim, initial_method)
-            layer.param.b = Variable(zeros(1, out_dim), name="b")
             if initial_method == "xavier"
                 W = xavier(in_dim, out_dim)
             elseif initial_method == "he"
@@ -21,16 +19,21 @@ mutable struct Linear <: Layer
             else initial_method isa Function
                 W = initial_method(in_dim, out_dim)
             end    
-            layer.param.W = Variable(W, name="W")
+            W = Variable(W, name="W")
+            b = Variable(zeros(1, out_dim), name="b")
+            layer = new(W, b, in_dim, out_dim, initial_method)
             return layer
         end
     end
 end
 
 
+parameters(linear::Linear) = (linear.W, linear.b)
+
+
 
 function forward(layer::Linear, x)
-    if layer.param.W isa Nothing
+    if layer.W isa Nothing
         layer.in_dim = size(x.values)[2]
         if layer.initial_method == "xavier"
             W = xavier(layer.in_dim, layer.out_dim)
@@ -39,8 +42,8 @@ function forward(layer::Linear, x)
         else layer.initial_method isa Function
             W = layer.initial_method(layer.in_dim, layer.out_dim)
         end   
-        layer.param.W = Variable(W, name="W")
+        layer.W = Variable(W, name="W")
     end 
-    return linear(x, layer.param.W, layer.param.b)
+    return linear(x, layer.W, layer.b)
 end
 

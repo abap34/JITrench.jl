@@ -1,4 +1,5 @@
-using JITrench: Variable, @model, Model, Linear, sigmoid, SGD, setup!, mean_squared_error, cleargrads!, backward!, do_optimize!
+import JITrench
+using JITrench: Variable, Model, Linear, sigmoid, SGD, setup!, mean_squared_error, cleargrads!, backward!, do_optimize!
 using Printf
 using Random
 
@@ -25,11 +26,13 @@ function train(model, x, y; n_iters=10000, log_interval=200, lr=1e-1)
     end 
 end    
 
-@model mutable struct MLP <: Model
+mutable struct MLP <: Model
     l1 :: Linear
     l2 :: Linear
     MLP(hidden_dim, out_dim) = new(Linear(hidden_dim), Linear(out_dim))
 end
+
+JITrench.layers(model::MLP) = (model.l1, model.l2)
 
 (model::MLP)(x) = x |> model.l1 .|> sigmoid |> model.l2
 
