@@ -12,6 +12,7 @@ include("core/propagation.jl")
 include("core/math_functions.jl")
 
 include("arr/reshape.jl")
+include("arr/flatten.jl")
 include("arr/transpose.jl")
 include("arr/sum.jl")
 include("arr/sum_to.jl")
@@ -26,7 +27,7 @@ include("utils/plot.jl")
 include("nn/utils.jl")
 include("nn/layers/layer.jl")
 include("nn/layers/linear.jl")
-include("nn/activation/sigmoid.jl")
+include("nn/funcitons/activation/sigmoid.jl")
 include("nn/funcitons/loss/mean_squared_error.jl")
 
 include("nn/model.jl")
@@ -36,6 +37,6 @@ include("nn/optimizer/sgd.jl")
 
 
 
-export Variable, backward!, parameters
+export Variable, DiffableFunction, backward!, parameters, cleargrad!, flatten, matmul, sum_to, sigmoid, mean_squared_error, linear, Model, Layer, SGD
 
 end
