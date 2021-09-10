@@ -65,8 +65,6 @@ function backward(::Neg, gy::Variable{T})  where {T <: AbstractArray}
 end
 
 function backward(f::Mul, gy::Variable{T}) where {T <: Real}
-    @show x1
-    @show gy
     x1, x2 = f.grad_field.inputs
     return (x2 * gy, x1 * gy) 
 end
