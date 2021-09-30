@@ -1,4 +1,4 @@
-include("../funcitons/linear.jl")
+include("../funcitons/layer_backend/linear.jl")
 
 mutable struct Linear <: Layer
     W :: Union{Nothing, Variable}
