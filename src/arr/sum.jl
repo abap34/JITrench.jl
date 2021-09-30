@@ -86,3 +86,4 @@ julia> y.values
 ```
 """
 Base.sum(x::Variable; dims=nothing, keepdims=false) = Sum(dims, keepdims)(x)
+is_support(::typeof(Base.sum)) = true
