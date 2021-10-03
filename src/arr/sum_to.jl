@@ -6,28 +6,30 @@ mutable struct SumTo <: DiffableFunction
 end
 
 
+function _sum_to(x::R, shape::Tuple{})  where  R <:  Real
+    return sum(x)
+end
 
-function _sum_to(x, shape)
-    if shape == ()
-        is_scalar = true
-        shape = (1,)
-    end
+
+function _sum_to(x::T, shape)  where T  <: AbstractArray
     x_shape = size(x)
     (shape == x_shape) && (return x)
-    sum_axis = findall(x -> x != 0, shape .- x_shape) 
-    result = _sum(x, dims=sum_axis)
-    if shape == (1,) && is_scalar
-        if prod(size(result)) == 1
-            return result[1]
-        else
-            throw(DimensionMismatch("fault sum_to. result: $result, result must be scalar."))
-        end
-    end
-    if size(result) != shape
-        throw(DimensionMismatch("fault sum_to. result: $result, shape:$shape"))
+    if length(x_shape) < length(shape)
+        throw(DimensionMismatch("Unexpected shape. length(x_shape) must be bigger than length(shape). But length(x_shape) = $(length(x_shape)), length(shape) = $(length(shape))"))
+    elseif length(x_shape) > length(shape)
+        n_repeat = length(x_shape) - length(shape)
+        repeated_axis = vcat([shape...], ones(Int, n_repeat))
+        shape = (repeated_axis...,) 
+        sum_axis = findall(x -> x != 0, shape .- x_shape) 
+        result = _sum(x, dims=sum_axis)
+        drop_dim = ((length(x_shape) - n_repeat + 1:length(x_shape))...,)
+        result = dropdims(result, dims=drop_dim)
     else
-        return result
+        sum_axis = findall(x -> x != 0, shape .- x_shape) 
+        result = _sum(x, dims=sum_axis)
     end
+    @show result
+    return result
 end
 
 function forward(f::SumTo, x)
