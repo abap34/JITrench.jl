@@ -6,12 +6,12 @@ mutable struct SumTo <: DiffableFunction
 end
 
 
-function _sum_to(x::R, shape::Tuple{})  where  R <:  Real
+function _sum_to(x, shape::Tuple{}) 
     return sum(x)
 end
 
 
-function _sum_to(x::T, shape)  where T  <: AbstractArray
+function _sum_to(x, shape) 
     x_shape = size(x)
     (shape == x_shape) && (return x)
     if length(x_shape) < length(shape)
@@ -25,9 +25,11 @@ function _sum_to(x::T, shape)  where T  <: AbstractArray
         drop_dim = ((length(x_shape) - n_repeat + 1:length(x_shape))...,)
         result = dropdims(result, dims=drop_dim)
     else
+        pritnln("0-9876543")
         sum_axis = findall(x -> x != 0, shape .- x_shape) 
         result = _sum(x, dims=sum_axis)
     end
+    @show result
     return result
 end
 
