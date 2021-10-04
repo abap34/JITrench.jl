@@ -17,3 +17,4 @@ function backward(f::Reshape, gy)
 end
 
 Base.reshape(x::Variable, shape) = Reshape(size(x), shape)(x)
+is_support(::typeof(Base.reshape)) = true

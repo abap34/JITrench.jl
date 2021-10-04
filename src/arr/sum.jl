@@ -10,14 +10,14 @@ mutable struct Sum <: DiffableFunction
 end
 
 
-function set_same_dim(x::Number, n_dim)
+function set_same_dim(x::R, n_dim) where R <: Real
     (ndims(x) > n_dim) && (throw(DimensionMismatch("ndims(x) = $(ndims(x)), but n_dim = $(n_dim). ndims(x) must be less than n_dim")))
     return reshape([x], (ones(Int, n_dim)...))
 end
 
 
 
-function set_same_dim(x::AbstractArray, n_dim)
+function set_same_dim(x::T, n_dim) where T <: AbstractArray
     (ndims(x) > n_dim) && (throw(DimensionMismatch("ndims(x) = $(ndims(x)), but n_dim = $(n_dim). ndims(x) must be less than n_dim")))
     return reshape(x, (size(x)..., ones(Int, n_dim - ndims(x))...))
 end
@@ -86,3 +86,4 @@ julia> y.values
 ```
 """
 Base.sum(x::Variable; dims=nothing, keepdims=false) = Sum(dims, keepdims)(x)
+is_support(::typeof(Base.sum)) = true

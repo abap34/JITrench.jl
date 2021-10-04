@@ -32,7 +32,7 @@ function forward(f::BroadcastTo, x)
 end
 
 function backward(f::BroadcastTo, gy)
-    gx = _sum_to(gy, f.x_shape)   
+    gx = sum_to(gy, f.x_shape)   
     return gx
 end
 

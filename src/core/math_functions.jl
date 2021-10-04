@@ -94,15 +94,15 @@ end
 
 
 const math_functions = Dict(
-    :sin => Sin,
-    :cos => Cos,
-    :tan => Tan,
-    :log => Log,
-    :exp => Exp
+    :(Base.sin) => Sin,
+    :(Base.cos) => Cos,
+    :(Base.tan) => Tan,
+    :(Base.log) => Log,
+    :(Base.exp) => Exp
 )
 
 for (func, jt_func) in math_functions
-    @eval Base.$func(x::Variable) = $jt_func(GradField())(x)
+    @eval $func(x::Variable) = $jt_func(GradField())(x)
     @eval is_support(::typeof($func)) = true
     @eval is_support_broadcast(::typeof($func)) = true
     @eval get_jt_struct(::typeof($func)) = $jt_func

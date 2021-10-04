@@ -31,3 +31,4 @@ creator: JITrench.Transpose
 ```
 """
 Base.transpose(x::Variable) = Transpose(size(x.values), GradField())(x)
+is_support(::typeof(Base.transpose)) = true

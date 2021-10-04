@@ -132,6 +132,7 @@ function plot_graph(var::Variable; to_file="", title="")
             c = open(png_file_path) do io
             PNGContainer(read(io))
         end
+	println("hello!")
         return c
     else
         extension = split(to_file, ".")[2]
