@@ -99,10 +99,10 @@ function backward(f::Pow, gy::Variable{T})  where {T <: AbstractArray}
 end
 
 const normal_operators = Dict(
-    :(Base.+) => Add,
-    :(Base.-) => Sub, 
-    :(Base.*) => Mul,
-    :(Base./) => Div,
+    :+ => Add,
+    :- => Sub, 
+    :* => Mul,
+    :/ => Div,
 )
 
 
@@ -112,12 +112,12 @@ is_support(::typeof(^)) = true
 get_jt_struct(::typeof(^)) = Pow
 
 for (op, jt_func) in normal_operators
-    @eval is_support(::typeof($op)) = true
-    @eval is_support_broadcast(::typeof($op)) = true
-    @eval get_jt_struct(::typeof($op)) = $jt_func
-    @eval $op(x1::Variable, x2::Real) = $op(promote(x1, x2)...)
-    @eval $op(x1::Real, x2::Variable) = $op(promote(x1, x2)...)
-    @eval $op(x1::Variable, x2::Variable) = $jt_func(GradField())(x1, x2)
+    @eval is_support(::typeof(Base.$op)) = true
+    @eval is_support_broadcast(::typeof(Base.$op)) = true
+    @eval get_jt_struct(::typeof(Base.$op)) = $jt_func
+    @eval Base.$op(x1::Variable, x2::Real) = Base.$op(promote(x1, x2)...)
+    @eval Base.$op(x1::Real, x2::Variable) = Base.$op(promote(x1, x2)...)
+    @eval Base.$op(x1::Variable, x2::Variable) = $jt_func(GradField())(x1, x2)
 end
 
 
