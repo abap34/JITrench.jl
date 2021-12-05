@@ -57,11 +57,6 @@ julia> y = Variable(3.5, name="y")
 name: y values: 3.5
 creator: User-Defined(nothing)
 
-julia> z = goldstain(x, y)
-name: nothing 
-values: 1.260939725e7
-creator: JITrench.Mul
-
 julia> goldstain(x, y) = 
        (1 + (x + y + 1)^2 * (19 - 14x + 3x^2 - 14y + 6x*y + 3y^2)) *  (30 + (2x - 3y)^2 * (18 - 32x + 12x^2 + 48y - 36x*y + 27*y^2))
 goldstain (generic function with 1 method)
