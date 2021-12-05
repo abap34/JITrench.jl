@@ -1,11 +1,3 @@
-function get_value_type(nested_var)
-    if eltype(nested_var) <: Real
-        return eltype(nested_var)
-    else
-        get_value_type(eltype(nested_var))
-    end
-end
-
 const tmp_dir = joinpath(expanduser("~"), ".JITrench")
 const dot_file_path = joinpath(tmp_dir, "tmp_graph.dot")
 
@@ -25,7 +17,7 @@ function Base.show(io::IO, ::MIME"image/png", c::PNGContainer)
 end
 
 
-function _dot_var(var::Variable)
+function _dot_var(var::Variable{T}) where T
     name = (var.name === nothing) ? "" : var.name * ":"
     value = var.values
     if var.values !== nothing
@@ -37,7 +29,7 @@ function _dot_var(var::Variable)
                 name *= "nothing"
             end
         else    
-            name *= "shape: $(var_size) \n type: $(get_value_type(value))"
+            name *= "shape: $(var_size) \n type: $(T))"
         end
     end
     dot_var = "$(objectid(var)) [label=\"$name\", color=orange, style=filled]\n"
@@ -88,7 +80,7 @@ end
 
 function plot_tmp_dir()
     extension = "png"
-    to_file = joinpath(tmp_dir, "graph.png")       
+    to_file = joinpath(tmp_dir, "graph." * extension)       
     cmd = `dot $(dot_file_path) -T $(extension) -o $(to_file)`
     run(cmd)
     return to_file
@@ -132,7 +124,6 @@ function plot_graph(var::Variable; to_file="", title="")
             c = open(png_file_path) do io
             PNGContainer(read(io))
         end
-	println("hello!")
         return c
     else
         extension = split(to_file, ".")[2]
