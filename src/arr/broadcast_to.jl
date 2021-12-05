@@ -15,10 +15,14 @@ julia> _broadcast_to(1, (2, 2))
  1.0  1.0
 ```
 """
-function _broadcast_to(A, shape)
-    return zeros(shape) .+ A
+function _broadcast_to(x::R, shape) where R <: Real
+    return fill(x, shape)
 end
 
+
+function _broadcast_to(A::AbstractArray{R}, shape) where R <: Real
+    return zeros(R, shape) .+ A
+end
 mutable struct BroadcastTo <: DiffableFunction
     grad_field :: GradField
     shape
