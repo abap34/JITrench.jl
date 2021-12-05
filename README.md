@@ -44,3 +44,29 @@ name: nothing
 values: 17
 creator: JITrench.Add
 ```
+
+
+# Display a calculation graph
+
+```julia
+julia> x = Variable(2.5, name="x")
+name: x values: 2.5
+creator: User-Defined(nothing)
+
+julia> y = Variable(3.5, name="y")
+name: y values: 3.5
+creator: User-Defined(nothing)
+
+julia> goldstain(x, y) = 
+       (1 + (x + y + 1)^2 * (19 - 14x + 3x^2 - 14y + 6x*y + 3y^2)) *  (30 + (2x - 3y)^2 * (18 - 32x + 12x^2 + 48y - 36x*y + 27*y^2))
+goldstain (generic function with 1 method)
+
+julia> z = goldstain(x, y)
+name: nothing values: 1.260939725e7
+creator: JITrench.Mul
+
+julia> JITrench.plot_graph(z, to_file="graph.png")
+Process(`dot /file/to/dir/.JITrench/tmp_graph.dot -T png -o graph.png`, ProcessExited(0))
+```
+
+![](https://cdn.discordapp.com/attachments/810478331790491681/916949639222149160/graph.png)
