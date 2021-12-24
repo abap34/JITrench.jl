@@ -50,11 +50,13 @@ creator: JITrench.Add
 
 ```julia
 julia> x = Variable(2.5, name="x")
-name: x values: 2.5
+name: x 
+values: 2.5
 creator: User-Defined(nothing)
 
 julia> y = Variable(3.5, name="y")
-name: y values: 3.5
+name: y 
+values: 3.5
 creator: User-Defined(nothing)
 
 julia> goldstain(x, y) = 
@@ -62,7 +64,8 @@ julia> goldstain(x, y) =
 goldstain (generic function with 1 method)
 
 julia> z = goldstain(x, y)
-name: nothing values: 1.260939725e7
+name: nothing 
+values: 1.260939725e7
 creator: JITrench.Mul
 
 julia> JITrench.plot_graph(z, to_file="graph.png")
