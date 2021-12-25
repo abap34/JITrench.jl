@@ -32,7 +32,7 @@ mutable struct MLP <: Model
     MLP(hidden_dim, out_dim) = new(Linear(hidden_dim), Linear(out_dim))
 end
 
-JITrench.layers(model::MLP) = (model.l1, model.l2)
+layers(model::MLP) = (model.l1, model.l2)
 
 (model::MLP)(x) = x |> model.l1 .|> sigmoid |> model.l2
 
