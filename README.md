@@ -99,7 +99,6 @@ julia> JITrench.plot_graph(Δx, to_file="graph2.png")
 ## Example: Train Neural Networks
 
 ```julia
-import JITrench
 using JITrench: Variable, Model, Linear, sigmoid, SGD,  mean_squared_error, cleargrads!, backward!, do_optimize!
 using Printf
 using Random
@@ -116,13 +115,9 @@ function train(model, x, y; n_iters=10000, log_interval=200, lr=1e-1)
     optimizer = SGD(layers, lr=1e-1)
     JITrench.plot_model(model, x)
     for iter in 1:n_iters
-        if iter == 1
-            cleargrads!(model, layers, skip_uninit=true)
-        else
-            cleargrads!(model, layers)
-        end
         y_pred = model(x)
         loss = mean_squared_error(y, y_pred)
+        cleargrads!(model, layers, skip_uninit=true)
         backward!(loss)
         do_optimize!(model, optimizer)
         if (iter - 1) % log_interval == 0
