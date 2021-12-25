@@ -3,7 +3,7 @@ const dot_file_path = joinpath(tmp_dir, "tmp_graph.dot")
 colors = Dict(
     "func" => "lightblue",
     "var" => "orange",
-    "user_defined_var" => "orange2"
+    "user_defined_var" => "orange"
 )
 
 """
@@ -23,28 +23,34 @@ end
 
 
 function _dot_var(var::Variable{T}) where T
-    name = (var.name === nothing) ? "" : var.name 
+    
+    label = ""
     value = var.values
     if value !== nothing
         var_size = size(value)
         if isempty(var_size)
             try value !== nothing
-                name *= "\n$(value)"
+                label *= "$(value)"
             catch
-                name *= "nothing"
+                label *= "nothing"
             end
         else    
-            name *= "shape: $(var_size) \n type: $(T))"
+            label *= "shape: $(var_size) \n type: $(T))"
         end
     end
     if var.creator === nothing
         color = colors["user_defined_var"]
-        shape = "doublecircle"
+        shape = "polygon, sides=8"
     else
         color = colors["var"]
-        shape = "circle"
+        shape = "ellipse"
     end
-    dot_var = "$(objectid(var)) [shape=$shape, label=\"$name\", color=\"$color\", style=filled]\n"
+    if var.name === nothing
+        dot_var = "$(objectid(var)) [shape=$shape, label=\"$label\", color=\"$color\", style=filled]\n"
+    else
+        name = var.name * "<br/>"
+        dot_var = "$(objectid(var)) [shape=$shape, label=<<b>$name</b>$label>, color=\"$color\", style=filled]\n"
+    end
     return dot_var
 end
 
