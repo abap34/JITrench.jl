@@ -14,8 +14,6 @@ end
 
 
 
-
-
 function generate_expr(N)
     randop() = sample(["+", "-", "/", "*", "^"])
     randnum(scale=100) = @sprintf("%.2f", scale * (rand() - 0.5))
@@ -70,3 +68,8 @@ function isAbout(X::AbstractArray, Y::AbstractArray; e=1e-4)
 end
 
 
+function random_arr(;min_dim=1, max_dim=4, min_r=1, max_r=10, collection=Float64)
+    dim = rand(min_dim:max_dim)
+    shape = Tuple(rand(min_r:max_r, dim))
+    return rand(collection, shape)
+end

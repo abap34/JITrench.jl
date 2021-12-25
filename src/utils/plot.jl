@@ -1,5 +1,10 @@
 const tmp_dir = joinpath(expanduser("~"), ".JITrench")
 const dot_file_path = joinpath(tmp_dir, "tmp_graph.dot")
+colors = Dict(
+    "func" => "lightblue",
+    "var" => "orange",
+    "user_defined_var" => "orange"
+)
 
 """
     PNGContainer
@@ -18,28 +23,41 @@ end
 
 
 function _dot_var(var::Variable{T}) where T
-    name = (var.name === nothing) ? "" : var.name * ":"
+    
+    label = ""
     value = var.values
-    if var.values !== nothing
+    if value !== nothing
         var_size = size(value)
         if isempty(var_size)
-            try var.values !== nothing
-                name *= "\n$(value)"
+            try value !== nothing
+                label *= "$(value)"
             catch
-                name *= "nothing"
+                label *= "nothing"
             end
         else    
-            name *= "shape: $(var_size) \n type: $(T))"
+            label *= "shape: $(var_size) \n type: $(T))"
         end
     end
-    dot_var = "$(objectid(var)) [label=\"$name\", color=orange, style=filled]\n"
+    if var.creator === nothing
+        color = colors["user_defined_var"]
+        shape = "polygon, sides=8"
+    else
+        color = colors["var"]
+        shape = "ellipse"
+    end
+    if var.name === nothing
+        dot_var = "$(objectid(var)) [shape=$shape, label=\"$label\", color=\"$color\", style=filled]\n"
+    else
+        name = var.name * "<br/>"
+        dot_var = "$(objectid(var)) [shape=$shape, label=<<b>$name</b>$label>, color=\"$color\", style=filled]\n"
+    end
     return dot_var
 end
 
 
 function _dot_func(f::DiffableFunction)
     f_type = typeof(f)
-    txt = "$(objectid(f)) [label=\"$(f_type)\", color=lightblue, style=filled, shape=box]\n"
+    txt = "$(objectid(f)) [label=\"$(f_type)\", color=\"$(colors["func"])\", style=filled, shape=box]\n"
     for x in f.grad_field.inputs
         txt *= "$(objectid(x)) -> $(objectid(f))\n"
     end

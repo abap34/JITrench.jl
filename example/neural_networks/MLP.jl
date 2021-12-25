@@ -1,5 +1,5 @@
 import JITrench
-using JITrench: Variable, Model, Linear, sigmoid, SGD, setup!, mean_squared_error, cleargrads!, backward!, do_optimize!
+using JITrench: Variable, Model, Linear, sigmoid, SGD,  mean_squared_error, cleargrads!, backward!, do_optimize!
 using Printf
 using Random
 
@@ -12,14 +12,13 @@ function generate_dataset(N)
 end
 
 function train(model, x, y; n_iters=10000, log_interval=200, lr=1e-1)
-    optimizer = SGD(lr=1e-1)
-    setup!(optimizer, model)
+    optimizer = SGD(layers, lr=1e-1)
     for iter in 1:n_iters
         y_pred = model(x)
         loss = mean_squared_error(y, y_pred)
-        cleargrads!(model)
+        cleargrads!(model, layers, skip_uninit=true)
         backward!(loss)
-        do_optimize!(optimizer)
+        do_optimize!(model, optimizer)
         if (iter - 1) % log_interval == 0
             @printf "[iters] %4i [loss] %.2f\n" iter loss.values 
         end
@@ -32,7 +31,7 @@ mutable struct MLP <: Model
     MLP(hidden_dim, out_dim) = new(Linear(hidden_dim), Linear(out_dim))
 end
 
-JITrench.layers(model::MLP) = (model.l1, model.l2)
+layers(model::MLP) = (model.l1, model.l2)
 
 (model::MLP)(x) = x |> model.l1 .|> sigmoid |> model.l2
 
