@@ -1,15 +1,16 @@
-mutable struct SGD <: Optimizer
+mutable struct SGD{F} <: Optimizer 
+    target_layers :: F
     lr
-    target 
-    SGD(;lr=1e-3) = new(lr, nothing)
 end
 
-function do_optimize!(sgd::SGD)
-    for p in parameters(sgd.target)
-        p.values -= sgd.lr * p.grad.values
+
+SGD(target_layers; lr=1e-3) = SGD(target_layers, lr)
+
+function do_optimize!(model::T, optimizer::SGD) where T <: Model
+    for layer in optimizer.target_layers(model)
+        for p in parameters(layer)
+            p.values -= optimizer.lr * p.grad.values
+        end
     end
 end
 
-function setup!(sgd::SGD, model::Model)
-    sgd.target = model
-end

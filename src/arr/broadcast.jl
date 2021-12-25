@@ -34,14 +34,6 @@ for (func, jt_func) in _func_to_jt_struct
     Base.broadcasted(::typeof(func), x1, x2::Variable) = Broadcasting(func, jt_func(GradField()))(Variable(x1), x2)
 end
 
-
-# function Base.materialize!(x::Variable, casted_x::Variable)
-#     x.name = casted_x.name
-#     x.values = casted_x.values
-#     x.creator = casted_x.creator
-#     return x
-# end
-
 function forward(f::Broadcasting, x...)
     Base.materialize(Base.broadcasted(f.f, x...))
 end
@@ -52,6 +44,7 @@ end
 
 
 function backward(f::Broadcasting, gy)
+    f.true_func.grad_field = f.grad_field
     if length(f.grad_field.inputs) ==  1
         gx = backward(f.true_func, gy)
         return gx

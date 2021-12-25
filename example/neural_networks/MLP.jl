@@ -1,5 +1,5 @@
 import JITrench
-using JITrench: Variable, Model, Linear, sigmoid, SGD, setup!, mean_squared_error, cleargrads!, backward!, do_optimize!
+using JITrench: Variable, Model, Linear, sigmoid, SGD,  mean_squared_error, cleargrads!, backward!, do_optimize!
 using Printf
 using Random
 
@@ -12,14 +12,17 @@ function generate_dataset(N)
 end
 
 function train(model, x, y; n_iters=10000, log_interval=200, lr=1e-1)
-    optimizer = SGD(lr=1e-1)
-    setup!(optimizer, model)
+    optimizer = SGD(layers, lr=1e-1)
     for iter in 1:n_iters
+        if iter == 1
+            cleargrads!(model, layers, skip_uninit=true)
+        else
+            cleargrads!(model, layers)
+        end
         y_pred = model(x)
         loss = mean_squared_error(y, y_pred)
-        cleargrads!(model)
         backward!(loss)
-        do_optimize!(optimizer)
+        do_optimize!(model, optimizer)
         if (iter - 1) % log_interval == 0
             @printf "[iters] %4i [loss] %.2f\n" iter loss.values 
         end
