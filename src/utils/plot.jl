@@ -144,7 +144,7 @@ function plot_graph(var::Variable; to_file="", title="")
         end
         return c
     else
-        extension = split(to_file, ".")[2]
+        extension = split(to_file, ".")[end]
         cmd = `dot $(dot_file_path) -T $(extension) -o $(to_file)`
         run(cmd)
     end
