@@ -69,7 +69,7 @@ creator: JITrench.Mul
 julia> JITrench.plot_graph(z, to_file="graph.png")
 ```
 
-![](https://media.discordapp.net/attachments/810478331790491681/924093946496434207/graph.png?width=810&height=854)
+![](example/visualize/goldstain.png)
 
 
 ```julia
@@ -83,7 +83,7 @@ name: x₂
 values: [0, 2, 4]
 creator: User-Defined(nothing)
 
-julia> Δx = x2 .- x1
+julia> Δx = x₂ .- x₁
 name: nothing 
 values: [1, 0, 1]
 creator: JITrench.Broadcasting{typeof(-)}
@@ -94,7 +94,7 @@ julia> Δx.name = "Δx"
 julia> JITrench.plot_graph(Δx, to_file="graph2.png")
 ```
 
-![](https://media.discordapp.net/attachments/810478331790491681/924093946844573767/graph2.png?width=810&height=290)
+![](example/visualize/graph2.png)
 
 ## Example: Train Neural Networks
 
@@ -142,5 +142,4 @@ train(model, generate_dataset(100)...)
 ```
 
 
-![](https://media.discordapp.net/attachments/810478331790491681/924441367923523624/fitting_history.gif)
-![](https://media.discordapp.net/attachments/810478331790491681/924441368514928700/model.png?width=810&height=358)
+![](example/neural_networks/fitting_history.gif)
