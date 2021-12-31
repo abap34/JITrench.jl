@@ -3,7 +3,6 @@ module JITrench
 
 include("utils/error.jl")
 
-
 include("core/variable.jl")
 include("core/functions_utils.jl")
 include("core/function.jl")
@@ -23,6 +22,7 @@ include("arr/getindex.jl")
 
 include("utils/out.jl")
 include("utils/plot.jl")
+include("utils/utils.jl")
 
 include("nn/utils.jl")
 include("nn/layers/layer.jl")
@@ -37,6 +37,6 @@ include("nn/optimizer/sgd.jl")
 
 
 
-export Variable, DiffableFunction, backward!, parameters, cleargrad!, flatten, matmul, sum_to, sigmoid, mean_squared_error, linear, Model, Layer, SGD
+export Variable, DiffableFunction, backward!, parameters, cleargrad!, flatten, matmul, sum_to, sigmoid, mean_squared_error, linear, Model, Layer, SGD, @diff!
 
 end
