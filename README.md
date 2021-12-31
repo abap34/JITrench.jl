@@ -21,27 +21,18 @@
 ## Auto Grad
 ```julia                                                 
 julia> using JITrench
-[ Info: Precompiling JITrench [573e55e6-eb53-4bcf-a884-6670806246ed]
 
-julia> x = Variable(3)
-name: nothing
-values: 3
-creator: User-Defined (nothing)
-
-julia> f(x) = 2x^2 + 5x + 10
+julia> f(x) = 2x^2 + 4x + 3
 f (generic function with 1 method)
 
-julia> y = f(x)
-name: nothing
-values: 43
-creator: JITrench.Add
+julia> @diff! f(x) # f′(x) = 4x + 4
+f′ (generic function with 1 method)
 
-julia> backward!(y)
+julia> f′(2)
+12
 
-julia> x.grad
-name: nothing
-values: 17
-creator: JITrench.Add
+julia> f′(3)
+16
 ```
 
 
