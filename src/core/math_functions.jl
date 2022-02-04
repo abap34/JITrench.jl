@@ -1,20 +1,20 @@
-mutable struct Sin <: DiffableFunction
+mutable struct Sin <: SingleReturnFunctions
     grad_field::GradField
 end
 
-mutable struct Cos <: DiffableFunction
+mutable struct Cos <: SingleReturnFunctions
     grad_field::GradField
 end
 
-mutable struct Tan <: DiffableFunction
+mutable struct Tan <: SingleReturnFunctions
     grad_field::GradField
 end
 
-mutable struct Log <: DiffableFunction
+mutable struct Log <: SingleReturnFunctions
     grad_field::GradField
 end
 
-mutable struct Exp <: DiffableFunction
+mutable struct Exp <: SingleReturnFunctions
     grad_field ::GradField
 end
 

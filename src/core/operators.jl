@@ -1,34 +1,34 @@
 import Base
 
-mutable struct Add <: DiffableFunction
+mutable struct Add <: SingleReturnFunctions
     grad_field::GradField
 end
 
-mutable struct Sub <: DiffableFunction
-    grad_field::GradField 
+mutable struct Sub <: SingleReturnFunctions
+    grad_field::GradField
 end
 
-mutable struct Neg <: DiffableFunction
-    grad_field::GradField 
+mutable struct Neg <: SingleReturnFunctions
+    grad_field::GradField
 end
 
-mutable struct Mul <: DiffableFunction
-    grad_field::GradField 
-end
-
-
-mutable struct Div <: DiffableFunction
-    grad_field::GradField 
+mutable struct Mul <: SingleReturnFunctions
+    grad_field::GradField
 end
 
 
-mutable struct Pow <: DiffableFunction
-    grad_field::GradField 
-    c
+mutable struct Div <: SingleReturnFunctions
+    grad_field::GradField
 end
 
 
-@inline forward(::Add, x1, x2)  = x1 + x2
+mutable struct Pow{T} <: SingleReturnFunctions
+    grad_field::GradField
+    c::T
+end
+
+
+@inline forward(::Add, x1, x2) = x1 + x2
 # case: a - b
 @inline forward(::Sub, x1, x2) = x1 - x2
 # case: -a
@@ -39,68 +39,68 @@ end
 @inline forward(f::Pow, x1) = x1^f.c
 
 
-function backward(::Add, gy::Variable{T}) where {T <: Real}
+function backward(::Add, gy::Variable{T}) where {T<:Real}
     return (gy, gy)
 end
 
-function backward(::Add, gy::Variable{T}) where {T <: AbstractArray}
+function backward(::Add, gy::Variable{T}) where {T<:AbstractArray}
     @. return (gy, gy)
 end
 
-function backward(::Sub, gy::Variable{T}) where {T <: Real}
+function backward(::Sub, gy::Variable{T}) where {T<:Real}
     return (gy, -gy)
 end
 
 
-function backward(::Sub, gy::Variable{T}) where {T <: AbstractArray}
+function backward(::Sub, gy::Variable{T}) where {T<:AbstractArray}
     return (gy, -gy)
 end
 
-function backward(::Neg, gy::Variable{T})  where {T <: Real}
+function backward(::Neg, gy::Variable{T}) where {T<:Real}
     return -gy
 end
 
-function backward(::Neg, gy::Variable{T})  where {T <: AbstractArray}
+function backward(::Neg, gy::Variable{T}) where {T<:AbstractArray}
     @. return -gy
 end
 
-function backward(f::Mul, gy::Variable{T}) where {T <: Real}
+function backward(f::Mul, gy::Variable{T}) where {T<:Real}
     x1, x2 = f.grad_field.inputs
-    return (x2 * gy, x1 * gy) 
+    return (x2 * gy, x1 * gy)
 end
 
-function backward(f::Mul, gy::Variable{T}) where {T <: AbstractArray} 
+function backward(f::Mul, gy::Variable{T}) where {T<:AbstractArray}
     x1, x2 = f.grad_field.inputs
-    @. return (x2 .* gy, x1 .* gy) 
+    @. return (x2 .* gy, x1 .* gy)
 end
 
-function backward(f::Div, gy::Variable{T})  where {T <: Real}
+function backward(f::Div, gy::Variable{T}) where {T<:Real}
     x1, x2 = f.grad_field.inputs
-    return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy 
+    return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy
 end
 
-function backward(f::Div, gy::Variable{T})  where {T <: AbstractArray}
+function backward(f::Div, gy::Variable{T}) where {T<:AbstractArray}
     x1, x2 = f.grad_field.inputs
-    @. return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy 
+    @. return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy
 end
 
 
-function backward(f::Pow, gy::Variable{T})  where {T <: Real}
+function backward(f::Pow, gy::Variable{T}) where {T<:Real}
     x = f.grad_field.inputs[1]
-    c = f.c  
+    c = f.c
     return (c * (x^(c - 1))) * gy
 end
 
 
-function backward(f::Pow, gy::Variable{T})  where {T <: AbstractArray}
+function backward(f::Pow, gy::Variable{T}) where {T<:AbstractArray}
     x = f.grad_field.inputs[1]
-    c = f.c  
+    c = f.c
     @. return (c * (x^(c - 1))) * gy
 end
 
 const normal_operators = Dict(
     :+ => Add,
-    :- => Sub, 
+    :- => Sub,
     :* => Mul,
     :/ => Div,
 )

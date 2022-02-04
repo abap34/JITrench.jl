@@ -1,10 +1,10 @@
 import DataStructures
 
 
-function (f::DiffableFunction)(vars...)
+function (f::DiffableFunction)(vars...)}
     f_gradfield = f.grad_field
     f_gradfield.inputs = collect(vars)
-
+    
     xs = get_values.(vars)
     ys = as_tuple(forward(f, xs...))
     
@@ -12,6 +12,18 @@ function (f::DiffableFunction)(vars...)
     f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation - 1) for y in ys]   
     
     return length(f_gradfield.outputs)  == 1 ? f_gradfield.outputs[1] : f_gradfield.outputs
+end
+
+function (f::OneReturnFunction)(vars...) 
+    f_gradfield = f.grad_field
+    f_gradfield.inputs = collect(vars)
+    
+    xs = get_values.(vars)
+    y = forward(f, xs...)
+    
+    f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
+    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation - 1)]   
+    return f_gradfield.outputs[1] 
 end
 
 """
@@ -54,8 +66,7 @@ function backward!(y::Variable; retain_grad=false)
     while !(isempty(funcs))
         f = DataStructures.dequeue!(funcs)
         gy = [output.grad for output in f.grad_field.outputs]
-        gxs = backward(f, gy...)
-        gxs = as_tuple(gxs)
+        gxs = as_tuple(backward(f, gy...))
         for (x, gx) in zip(f.grad_field.inputs, gxs)
             if x.grad isa Nothing
                 x.grad =  gx
