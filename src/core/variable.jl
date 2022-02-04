@@ -1,57 +1,3 @@
-import Base
-
-"""
-    TrenchObject
-An abstract type that is the root of an object as implemented in 
-Specifically, see also `subtypes(foo).`
-
-```julia-repl
-julia> subtypes(TrenchObject)
-2-element Vector{Any}:
- DiffableFunction
- Variable
-```
-"""
-abstract type TrenchObject end
-
-"""
-    DiffableFunction
-An abstract type that is the parent type of differentiable functions;
-
-all function in JITrench must be children of this type.
-
-# Examples
-
-```julia-repl
-julia> subtypes(DiffableFunction)
-24-element Vector{Any}:
- JITrench.Add
- JITrench.BroadcastTo
- JITrench.Broadcasting
- JITrench.Cos
- JITrench.Div
- JITrench.Exp
- JITrench.Flatten
- JITrench.GetIndex
- JITrench.GetIndexGrad
- JITrench.Log
- ⋮
- JITrench.Reshape
- JITrench.Sigmoid
- JITrench.Sin
- JITrench.Sub
- JITrench.Sum
- JITrench.SumTo
- JITrench.Tan
- JITrench.Transpose
- JITrench._Linear
-```
-"""
-abstract type DiffableFunction  <: TrenchObject end
-
-
-
-
 """
     Variable(values, [creator, grad, generation, name])
 
@@ -77,8 +23,8 @@ creator: User-Defined(nothing)
 """
 mutable struct Variable{T} <: TrenchObject
     values::T
-    creator
-    grad::Union{Variable,Nothing}
+    creator :: Union{Nothing, DiffableFunction}
+    grad::Union{Nothing, Variable}
     generation::Int
     name::Union{Nothing,String}
     function Variable(values::T; creator=nothing, grad=nothing, generation=0, name=nothing) where {T <: Union{<:Real,AbstractArray{<:Real}}}
@@ -99,7 +45,10 @@ Base.size(x::Variable) = size(x.values)
 function get_output_str(var::Variable)
     output = ""
     output *= "name: $(var.name) \n"
-    output *= "values: $(var.values)\n"
+    io = IOBuffer()
+    show(IOContext(io, :limit => true), "text/plain", var.values);
+    s = String(take!(io))
+    output *= "values: $(s)\n"
     if (var.grad !== nothing) 
         output *= "grad: $(var.grad)\n"
     end

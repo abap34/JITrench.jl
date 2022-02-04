@@ -1,10 +1,6 @@
 get_values(x::Variable) = x.values
 get_values(x) = x
 
-function get_gy(f::DiffableFunction)
-    outputs = f.grad_field.outputs
-    return [output.grad for output in outputs]
-end
 
 
 ones_like(x::R) where {R <: Real} = one(R)
@@ -34,7 +30,7 @@ julia> x.grad === nothing
 true
 ```
 """
-function cleargrad!(x::Variable)
+@inline function cleargrad!(x::Variable)
     x.grad = nothing
 end
 
