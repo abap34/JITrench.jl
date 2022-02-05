@@ -49,7 +49,7 @@ julia> subtypes(DiffableFunction)
  JITrench._Linear
 ```
 """
-abstract type DiffableFunction  <: TrenchObject end
+abstract type DiffableFunction <: TrenchObject end
 
 
 include("utils/error.jl")

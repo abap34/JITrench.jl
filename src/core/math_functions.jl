@@ -1,21 +1,21 @@
-mutable struct Sin <: SingleReturnFunctions
+mutable struct Sin <: SingleReturnFunction
     grad_field::GradField
 end
 
-mutable struct Cos <: SingleReturnFunctions
+mutable struct Cos <: SingleReturnFunction
     grad_field::GradField
 end
 
-mutable struct Tan <: SingleReturnFunctions
+mutable struct Tan <: SingleReturnFunction
     grad_field::GradField
 end
 
-mutable struct Log <: SingleReturnFunctions
+mutable struct Log <: SingleReturnFunction
     grad_field::GradField
 end
 
-mutable struct Exp <: SingleReturnFunctions
-    grad_field ::GradField
+mutable struct Exp <: SingleReturnFunction
+    grad_field::GradField
 end
 
 @inline forward(::Sin, x) = sin(x)
@@ -25,13 +25,13 @@ end
 @inline forward(::Exp, x) = exp(x)
 
 
-function backward(f::Sin, gy::Variable{T}) where {T <: Real}
+function backward(f::Sin, gy::Variable{T}) where {T<:Real}
     x = f.grad_field.inputs[1]
     return cos(x) * gy
 end
 
 
-function backward(f::Sin, gy::Variable{T}) where {T <: AbstractArray}
+function backward(f::Sin, gy::Variable{T}) where {T<:AbstractArray}
     x = f.grad_field.inputs[1]
     @. return cos(x) * gy
 end
@@ -39,12 +39,12 @@ end
 
 
 
-function backward(f::Cos, gy::Variable{T}) where {T <: Real}
+function backward(f::Cos, gy::Variable{T}) where {T<:Real}
     x = f.grad_field.inputs[1]
     return -sin(x) * gy
 end
 
-function backward(f::Cos,  gy::Variable{T}) where {T <: AbstractArray}
+function backward(f::Cos, gy::Variable{T}) where {T<:AbstractArray}
     x = f.grad_field.inputs[1]
     @. return -sin(x) * gy
 end
@@ -53,12 +53,12 @@ end
 
 
 
-function backward(f::Tan, gy::Variable{T}) where {T <: Real}
+function backward(f::Tan, gy::Variable{T}) where {T<:Real}
     x = f.grad_field.inputs[1]
     return (1 / (cos(x)^2)) * gy
 end
 
-function backward(f::Tan,  gy::Variable{T}) where {T <: AbstractArray}
+function backward(f::Tan, gy::Variable{T}) where {T<:AbstractArray}
     x = f.grad_field.inputs[1]
     @. return (1 / (cos(x)^2)) * gy
 end
@@ -66,28 +66,28 @@ end
 
 
 
-function backward(f::Log, gy::Variable{T}) where {T <: Real}
+function backward(f::Log, gy::Variable{T}) where {T<:Real}
     x = f.grad_field.inputs[1]
-    return gy / x    
+    return gy / x
 end
 
 
-function backward(f::Log,  gy::Variable{T}) where {T <: AbstractArray}
+function backward(f::Log, gy::Variable{T}) where {T<:AbstractArray}
     x = f.grad_field.inputs[1]
-    @. return gy / x    
+    @. return gy / x
 end
 
 
 
 
 
-function backward(f::Exp, gy::Variable{T}) where {T <: Real}
+function backward(f::Exp, gy::Variable{T}) where {T<:Real}
     x = f.grad_field.inputs[1]
     return exp(x) * gy
 end
 
 
-function backward(f::Exp,  gy::Variable{T}) where {T <: AbstractArray}
+function backward(f::Exp, gy::Variable{T}) where {T<:AbstractArray}
     x = f.grad_field.inputs[1]
     @. return exp(x) * gy
 end
