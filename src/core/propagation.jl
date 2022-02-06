@@ -1,7 +1,7 @@
 import DataStructures
 
 
-function (f::DiffableFunction)(vars...)}
+function (f::DiffableFunction)(vars...)
     f_gradfield = f.grad_field
     f_gradfield.inputs = collect(vars)
     
@@ -14,7 +14,7 @@ function (f::DiffableFunction)(vars...)}
     return length(f_gradfield.outputs)  == 1 ? f_gradfield.outputs[1] : f_gradfield.outputs
 end
 
-function (f::OneReturnFunction)(vars...) 
+function (f::SingleReturnFunction)(vars...) 
     f_gradfield = f.grad_field
     f_gradfield.inputs = collect(vars)
     

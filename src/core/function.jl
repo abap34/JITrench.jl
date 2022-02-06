@@ -12,7 +12,7 @@ mutable struct GradField
     end
 end
 
-abstract type SingleReturnFunctions <: DiffableFunction end
+abstract type SingleReturnFunction <: DiffableFunction end
 
 function Base.show(io::IO, f::DiffableFunction)
     print(io, typeof(f))

@@ -1,28 +1,28 @@
 import Base
 
-mutable struct Add <: SingleReturnFunctions
+mutable struct Add <: SingleReturnFunction
     grad_field::GradField
 end
 
-mutable struct Sub <: SingleReturnFunctions
+mutable struct Sub <: SingleReturnFunction
     grad_field::GradField
 end
 
-mutable struct Neg <: SingleReturnFunctions
+mutable struct Neg <: SingleReturnFunction
     grad_field::GradField
 end
 
-mutable struct Mul <: SingleReturnFunctions
-    grad_field::GradField
-end
-
-
-mutable struct Div <: SingleReturnFunctions
+mutable struct Mul <: SingleReturnFunction
     grad_field::GradField
 end
 
 
-mutable struct Pow{T} <: SingleReturnFunctions
+mutable struct Div <: SingleReturnFunction
+    grad_field::GradField
+end
+
+
+mutable struct Pow{T} <: SingleReturnFunction
     grad_field::GradField
     c::T
 end
