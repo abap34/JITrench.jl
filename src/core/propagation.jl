@@ -9,7 +9,7 @@ function (f::DiffableFunction)(vars...)
     ys = as_tuple(forward(f, xs...))
     
     f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
-    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation - 1) for y in ys]   
+    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1) for y in ys]   
     
     return length(f_gradfield.outputs)  == 1 ? f_gradfield.outputs[1] : f_gradfield.outputs
 end
@@ -22,7 +22,7 @@ function (f::SingleReturnFunction)(vars...)
     y = forward(f, xs...)
     
     f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
-    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation - 1)]   
+    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1)]   
     return f_gradfield.outputs[1] 
 end
 
@@ -56,7 +56,7 @@ creator: User-Defined(nothing)
 ```
 """
 function backward!(y::Variable; retain_grad=false)
-    funcs = DataStructures.PriorityQueue{DiffableFunction,Int}()
+    funcs = DataStructures.PriorityQueue{DiffableFunction,Int}(Base.Order.Reverse)
     seen_set = Set{DiffableFunction}()
     if y.grad isa Nothing
         y.grad = Variable(ones_like(y.values))
