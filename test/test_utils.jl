@@ -1,22 +1,8 @@
-using Primes
-
-function randfact(N; min_len=1, max_len=10)
-    l = rand(min_len:max_len)
-    base_arr = factor(Array, N)
-    ind = rand(1:l, length(base_arr))
-    return prod.(getindex.(Ref(base_arr), (i -> ind .== i).(1:l)))
-end
-
-
-function generate_shape(n_elemtnt; min_dim=1, max_dim=5)
-    return Tuple(randfact(n_elemtnt, max_len=max_dim)), Tuple(randfact(n_elemtnt, min_len=min_dim, max_len=max_dim))
-end
-
+using Random
 
 function numerical_diff(f::Function, x::Real; e=1e-7)
     return (f(x + e) - f(x - e)) / 2e
 end
-
 
 function numerical_diff(f::Function, xs::AbstractArray; e=1e-7)
     grads = zeros(length(xs)) 
@@ -60,8 +46,13 @@ function ≃(X::AbstractArray, Y::AbstractArray; e=1e-4)
 end
 
 
-function random_arr(;min_dim=1, max_dim=4, min_r=1, max_r=10, collection=Float64)
-    dim = rand(min_dim:max_dim)
-    shape = Tuple(rand(min_r:max_r, dim))
-    return rand(collection, shape)
+function randshape(N::Int; min_dim=1, max_dim=10)
+    shape_length = rand(min_dim:max_dim) 
+    facts = factor(Array, N)
+    if shape_length > length(facts)
+        append!(facts, ones(Int, shape_length - length(facts)))
+    end
+    # assign prod group
+    assign = rand(1:shape_length, length(facts))
+    result = (i -> prod(getindex.(Ref(facts), findall(x -> x == i, assign)))).(1:shape_length)
 end
