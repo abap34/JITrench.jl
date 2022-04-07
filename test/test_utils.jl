@@ -52,7 +52,6 @@ function randshape(N::Int; min_dim=1, max_dim=10)
     if shape_length > length(facts)
         append!(facts, ones(Int, shape_length - length(facts)))
     end
-    # assign prod group
     assign = rand(1:shape_length, length(facts))
-    result = (i -> prod(getindex.(Ref(facts), findall(x -> x == i, assign)))).(1:shape_length)
+    return Tuple((i -> prod(getindex.(Ref(facts), findall(x -> x == i, assign)))).(1:shape_length))
 end
