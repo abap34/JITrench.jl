@@ -45,10 +45,7 @@ Base.size(x::Variable) = size(x.values)
 function get_output_str(var::Variable)
     output = ""
     output *= "name: $(var.name) \n"
-    io = IOBuffer()
-    show(IOContext(io, :limit => true), "text/plain", var.values);
-    s = String(take!(io))
-    output *= "values: $(s)\n"
+    output *= "values: $(var.values)\n"
     if (var.grad !== nothing) 
         output *= "grad: $(var.grad)\n"
     end
