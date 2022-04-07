@@ -1,4 +1,5 @@
 using Random
+using Primes
 
 function numerical_diff(f::Function, x::Real; e=1e-7)
     return (f(x + e) - f(x - e)) / 2e
