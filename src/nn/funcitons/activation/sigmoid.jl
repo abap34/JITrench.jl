@@ -20,11 +20,8 @@ function backward(f::Sigmoid, gy::Variable{T}) where {T <: AbstractArray}
 end
 
 sigmoid(x::Variable) = Sigmoid(GradField())(x)
-
-Base.broadcasted(::typeof(sigmoid), x::Variable)  = Broadcasting(_sigmoid, Sigmoid(GradField()))(x)
-
-
-
+base_to_jt(::typeof(sigmoid)) = Sigmoid
+jt_to_base(::Sigmoid) = sigmoid
 
 
 

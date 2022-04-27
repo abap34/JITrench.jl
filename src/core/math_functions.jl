@@ -105,6 +105,7 @@ for (func, jt_func) in math_functions
     @eval $func(x::Variable) = $jt_func(GradField())(x)
     @eval is_support(::typeof($func)) = true
     @eval is_support_broadcast(::typeof($func)) = true
-    @eval get_jt_struct(::typeof($func)) = $jt_func
+    @eval base_to_jt(::typeof($func)) = $jt_func
+    @eval jt_to_base(::$(jt_func)) = $func
 end
 
