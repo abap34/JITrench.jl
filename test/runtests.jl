@@ -14,7 +14,8 @@ test_files = Dict(
     "arr" => [
         "broadcast_to.jl",
         "broadcast.jl",
-        "flatten.jl"
+        "flatten.jl",
+        "broadcast_wrapper.jl"
     ]
 )
 
