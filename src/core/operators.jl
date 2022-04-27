@@ -109,15 +109,14 @@ const normal_operators = Dict(
 Base.:-(x::Variable) = Neg(GradField())(x)
 Base.:^(x::Variable, c) = Pow(GradField(), c)(x)
 is_support(::typeof(^)) = true
-get_jt_struct(::typeof(^)) = Pow
+base_to_jt(::typeof(^)) = Pow
 
 for (op, jt_func) in normal_operators
     @eval is_support(::typeof(Base.$op)) = true
     @eval is_support_broadcast(::typeof(Base.$op)) = true
-    @eval get_jt_struct(::typeof(Base.$op)) = $jt_func
+    @eval base_to_jt(::typeof(Base.$op)) = $jt_func
+    @eval jt_to_base(::$(jt_func)) = Base.$op
     @eval Base.$op(x1::Variable, x2::Real) = Base.$op(promote(x1, x2)...)
     @eval Base.$op(x1::Real, x2::Variable) = Base.$op(promote(x1, x2)...)
     @eval Base.$op(x1::Variable, x2::Variable) = $jt_func(GradField())(x1, x2)
 end
-
-

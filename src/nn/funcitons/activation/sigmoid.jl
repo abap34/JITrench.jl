@@ -1,4 +1,4 @@
-mutable struct Sigmoid <: DiffableFunction
+mutable struct Sigmoid <: SingleReturnFunction
     grad_field :: GradField
 end
 

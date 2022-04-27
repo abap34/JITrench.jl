@@ -27,8 +27,9 @@ mutable struct Variable{T} <: TrenchObject
     grad::Union{Nothing, Variable}
     generation::Int
     name::Union{Nothing,String}
-    function Variable(values::T; creator=nothing, grad=nothing, generation=0, name=nothing) where {T <: Union{<:Real,AbstractArray{<:Real}}}
-        new{T}(values, creator, grad, generation, name)
+    req_broadcast :: Bool
+    function Variable(values::T; creator=nothing, grad=nothing, generation=0, name=nothing, req_broadcast=false) where {T <: Union{<:Real,AbstractArray{<:Real}}}
+        new{T}(values, creator, grad, generation, name, req_broadcast)
     end
 end
 

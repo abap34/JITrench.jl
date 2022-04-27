@@ -9,7 +9,7 @@ function (f::DiffableFunction)(vars...)
     ys = as_tuple(forward(f, xs...))
     
     f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
-    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1) for y in ys]   
+    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false) for y in ys]   
     
     return length(f_gradfield.outputs)  == 1 ? f_gradfield.outputs[1] : f_gradfield.outputs
 end
@@ -17,12 +17,18 @@ end
 function (f::SingleReturnFunction)(vars...) 
     f_gradfield = f.grad_field
     f_gradfield.inputs = collect(vars)
-    
+    for var in vars
+        if var.req_broadcast 
+            f = Broadcasting(jt_to_base(f), f)
+            y = f(vars...)
+            y.req_broadcast = true
+            return y
+        end
+    end
     xs = get_values.(vars)
     y = forward(f, xs...)
-    
     f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
-    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1)]   
+    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false)]   
     return f_gradfield.outputs[1] 
 end
 
