@@ -107,9 +107,11 @@ const normal_operators = Dict(
 
 
 Base.:-(x::Variable) = Neg(GradField())(x)
+jt_to_base(::Neg) = -
 Base.:^(x::Variable, c) = Pow(GradField(), c)(x)
 is_support(::typeof(^)) = true
 base_to_jt(::typeof(^)) = Pow
+jt_to_base(::Pow) = ^
 
 for (op, jt_func) in normal_operators
     @eval is_support(::typeof(Base.$op)) = true
