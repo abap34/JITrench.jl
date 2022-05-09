@@ -4,22 +4,22 @@ import DataStructures
 function (f::DiffableFunction)(vars...)
     f_gradfield = f.grad_field
     f_gradfield.inputs = collect(vars)
-    
+
     xs = get_values.(vars)
     ys = as_tuple(forward(f, xs...))
-    
+
     f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
-    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false) for y in ys]   
-    
-    return length(f_gradfield.outputs)  == 1 ? f_gradfield.outputs[1] : f_gradfield.outputs
+    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false) for y in ys]
+
+    return length(f_gradfield.outputs) == 1 ? f_gradfield.outputs[1] : f_gradfield.outputs
 end
 
-function (f::SingleReturnFunction)(vars...) 
+function (f::SingleReturnFunction)(vars...)
     f_gradfield = f.grad_field
     f_gradfield.inputs = collect(vars)
     for var in vars
-        if var.req_broadcast 
-            f = Broadcasting(jt_to_base(f), f)
+        if var.req_broadcast
+            f = Broadcasting(pure_func(f), f)
             y = f(vars...)
             y.req_broadcast = true
             return y
@@ -28,8 +28,8 @@ function (f::SingleReturnFunction)(vars...)
     xs = get_values.(vars)
     y = forward(f, xs...)
     f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
-    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false)]   
-    return f_gradfield.outputs[1] 
+    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false)]
+    return f_gradfield.outputs[1]
 end
 
 """
@@ -75,7 +75,7 @@ function backward!(y::Variable; retain_grad=false)
         gxs = as_tuple(backward(f, gy...))
         for (x, gx) in zip(f.grad_field.inputs, gxs)
             if x.grad isa Nothing
-                x.grad =  gx
+                x.grad = gx
             else
                 x.grad = x.grad + gx
             end
