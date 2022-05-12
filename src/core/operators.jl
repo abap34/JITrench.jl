@@ -107,17 +107,17 @@ const normal_operators = Dict(
 
 
 Base.:-(x::Variable) = Neg(GradField())(x)
-jt_to_base(::Neg) = -
+pure_func(::Neg) = -
 Base.:^(x::Variable, c) = Pow(GradField(), c)(x)
 is_support(::typeof(^)) = true
-base_to_jt(::typeof(^)) = Pow
-jt_to_base(::Pow) = ^
+jt_func(::typeof(^)) = Pow
+pure_func(::Pow) = ^
 
 for (op, jt_func) in normal_operators
     @eval is_support(::typeof(Base.$op)) = true
     @eval is_support_broadcast(::typeof(Base.$op)) = true
-    @eval base_to_jt(::typeof(Base.$op)) = $jt_func
-    @eval jt_to_base(::$(jt_func)) = Base.$op
+    @eval jt_func(::typeof(Base.$op)) = $jt_func
+    @eval pure_func(::$(jt_func)) = Base.$op
     @eval Base.$op(x1::Variable, x2::Real) = Base.$op(promote(x1, x2)...)
     @eval Base.$op(x1::Real, x2::Variable) = Base.$op(promote(x1, x2)...)
     @eval Base.$op(x1::Variable, x2::Variable) = $jt_func(GradField())(x1, x2)
