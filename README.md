@@ -36,7 +36,8 @@ julia> f′(3)
 ```
 
 
-# Display a calculation graph
+No matter how "deep" the function, AutoGrad works well.
+ Of course, visualization of calculation graph is support.
 
 ```julia
 julia> x = Variable(2.5, name="x")
@@ -62,35 +63,37 @@ julia> JITrench.plot_graph(z, to_file="graph.png")
 
 ![](example/visualize/goldstain.png)
 
+AutoGrad works well even if you use broadcast with functions you defined!
 
 ```julia
-julia> x₁ = Variable([1, 2, 3], name="x₁")
-name: x₁ 
+julia> x = Variable([1, 2, 3])
+name: nothing 
 values: [1, 2, 3]
 creator: User-Defined(nothing)
 
-julia> x₂ = Variable([0, 2, 4], name="x₂")
-name: x₂ 
-values: [0, 2, 4]
-creator: User-Defined(nothing)
+julia> f(x) = 2x + 1
+f (generic function with 1 method)
 
-julia> Δx = x₂ .- x₁
+julia> y = f.(x)
 name: nothing 
-values: [1, 0, 1]
-creator: JITrench.Broadcasting{typeof(-)}
+values: [3, 5, 7]
+creator: JITrench.Broadcasting{typeof(+)}
 
-julia> Δx.name = "Δx"
-"Δx"
+julia> backward!(y)
 
-julia> JITrench.plot_graph(Δx, to_file="graph2.png")
+julia> x
+name: nothing 
+values: [1, 2, 3]
+grad: Variable([2, 2, 2])
+creator: User-Defined(nothing)
 ```
 
-![](example/visualize/graph2.png)
+![](example/visualize/broadcast.png)
 
 ## Example: Train Neural Networks
 
 ```julia
-using JITrench: Variable, Model, Linear, sigmoid, SGD,  mean_squared_error, cleargrads!, backward!, do_optimize!
+using JITrench: Variable, Model, Linear, sigmoid, SGD,  mean_squared_error, cleargrads!, backward!, optimize!
 using Printf
 using Random
 
@@ -102,7 +105,7 @@ function generate_dataset(N)
     return Variable(x),  Variable(y)
 end
 
-function train(model, x, y; n_iters=10000, log_interval=200, lr=1e-1)
+function train(model, x, y; n_iters=10000, lr=1e-1)
     optimizer = SGD(layers, lr=1e-1)
     JITrench.plot_model(model, x)
     for iter in 1:n_iters
@@ -110,10 +113,7 @@ function train(model, x, y; n_iters=10000, log_interval=200, lr=1e-1)
         loss = mean_squared_error(y, y_pred)
         cleargrads!(model, layers, skip_uninit=true)
         backward!(loss)
-        do_optimize!(model, optimizer)
-        if (iter - 1) % log_interval == 0
-            @printf "[iters] %4i [loss] %.2f\n" iter loss.values 
-        end
+        optimize!(model, optimizer)
     end 
 end    
 
