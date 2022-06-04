@@ -36,8 +36,7 @@ julia> f′(3)
 ```
 
 
-No matter how "deep" the function, AutoGrad works well.
- Of course, visualization of calculation graph is support.
+## AutoGrad in "Deep" Function
 
 ```julia
 julia> x = Variable(2.5, name="x")
@@ -63,7 +62,7 @@ julia> JITrench.plot_graph(z, to_file="graph.png")
 
 ![](example/visualize/goldstain.png)
 
-AutoGrad works well even if you use broadcast with functions you defined!
+## AutoGrad with broadcast, user defined function
 
 ```julia
 julia> x = Variable([1, 2, 3])
