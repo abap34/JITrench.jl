@@ -25,7 +25,7 @@ function train(model, x, y; n_iters=10000, log_interval=200, lr=1e-1)
         push!(history, loss.values)
         cleargrads!(model, layers, skip_uninit=true)
         backward!(loss)
-        do_optimize!(model, optimizer)
+        optimize!(model, optimizer)
         if (iter - 1) % log_interval == 0
             @printf "[iters] %4i [loss] %.2f\n" iter loss.values 
             val = reshape(collect(0:0.01:1), :, 1)
