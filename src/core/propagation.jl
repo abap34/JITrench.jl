@@ -28,7 +28,8 @@ function (f::SingleReturnFunction)(vars...)
     xs = get_values.(vars)
     y = forward(f, xs...)
     f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
-    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false)]
+    out = Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false)
+    f_gradfield.outputs = [out]
     return f_gradfield.outputs[1]
 end
 
@@ -71,6 +72,9 @@ function backward!(y::Variable; retain_grad=false)
     push!(seen_set, y.creator)
     while !(isempty(funcs))
         f = DataStructures.dequeue!(funcs)
+        if f isa SingleReturnFunction
+            gy = [f.grad_field.outputs[1].grad]
+        end
         gy = [output.grad for output in f.grad_field.outputs]
         gxs = as_tuple(backward(f, gy...))
         for (x, gx) in zip(f.grad_field.inputs, gxs)
