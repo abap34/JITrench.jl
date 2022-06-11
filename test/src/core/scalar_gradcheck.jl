@@ -11,7 +11,7 @@ N_TEST_COUNT = 1
                 x2 = rand()
                 y = op(x1, x2)
                 y_var = op(Variable(x1), Variable(x2))
-                @test y ≃ y_var.values
+                @test y ≈ y_var.values
             end
         end
     end
@@ -22,7 +22,7 @@ N_TEST_COUNT = 1
                 x2 = rand()
                 numerical_grad = numerical_diff(op, [x1, x2])
                 backward_grad = backward_diff(op, [x1, x2])
-                @test numerical_grad ≃ backward_grad
+                @test numerical_grad ≈ backward_grad
             end
         end
     end
@@ -43,7 +43,7 @@ funcitons = [
                 x = rand()
                 y = f(x)
                 y_var = f(Variable(x))
-                @test y ≃ y_var.values
+                @test y ≈ y_var.values
             end
         end
     end
@@ -53,10 +53,10 @@ funcitons = [
                 x = rand()
                 numerical_grad = numerical_diff(op, x)
                 backward_grad = backward_diff(op, x)
-                @test numerical_grad ≃ backward_grad
+                @test numerical_grad ≈ backward_grad
             end
         end
-    end  
+    end
 end
 
 
@@ -80,7 +80,7 @@ end
                 x = rand()
                 y = f(x)
                 y_var = f(Variable(x))
-                @test y ≃ y_var.values
+                @test y ≈ y_var.values
             end
         end
     end
@@ -90,8 +90,8 @@ end
                 x = rand()
                 numerical_grad = numerical_diff(op, x)
                 backward_grad = backward_diff(op, x)
-                @test numerical_grad ≃ backward_grad
+                @test numerical_grad ≈ backward_grad
             end
         end
-    end  
+    end
 end
