@@ -6,14 +6,14 @@ function numerical_diff(f::Function, x::Real; e=1e-7)
 end
 
 function numerical_diff(f::Function, xs::AbstractArray; e=1e-7)
-    grads = zeros(length(xs)) 
-    for idx in 1:length(xs)
+    grads = []
+    for idx in eachindex(xs)
         tmp_val = xs[idx]
         xs[idx] = tmp_val + e
         fxh1 = f(xs...)
         xs[idx] = tmp_val - e
         fxh2 = f(xs...)
-        grads[idx] = (fxh1 - fxh2) / 2e
+        push!(grads, (fxh1 - fxh2) / 2e)
         xs[idx] = tmp_val
     end
     return grads
@@ -33,11 +33,11 @@ function backward_diff(f, xs::AbstractArray)
     return (input -> input.grad.values).(inputs)
 end
 
-function ≃(x, y; e=1e-4)
+function ≈(x, y; e=1e-4)
     return ((x - y) < 1e-15) || (-e < ((x - y) / y) < e)
 end
 
-function ≃(X::AbstractArray, Y::AbstractArray; e=1e-4)
+function ≈(X::AbstractArray, Y::AbstractArray; e=1e-4)
     for (x, y) in zip(X, Y)
         if !(((x - y) < 1e-15) || (-e < ((x - y) / y) < e))
             return false
