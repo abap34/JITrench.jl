@@ -42,4 +42,4 @@ creator: MatMul
 """
 matmul(x, W) = MatMul(GradField())(x, W)
 
-Base.:*(x::Variable{Matrix{T}}, W::Variable{Matrix{R}}) where {T <: Real, R <: Real} = matmul(x, W)
+Base.:*(x::T, W::S) where {T <: AbstractTensor, S <: AbstractTensor} = matmul(x, W)

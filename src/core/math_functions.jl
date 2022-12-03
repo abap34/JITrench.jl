@@ -25,13 +25,13 @@ end
 @inline forward(::Exp, x) = exp(x)
 
 
-function backward(f::Sin, gy::Variable{T}) where {T<:Real}
+function backward(f::Sin, gy::Scalar)
     x = f.grad_field.inputs[1]
     return cos(x) * gy
 end
 
 
-function backward(f::Sin, gy::Variable{T}) where {T<:AbstractArray}
+function backward(f::Sin, gy::T) where T <: AbstractTensor 
     x = f.grad_field.inputs[1]
     @. return cos(x) * gy
 end
@@ -39,12 +39,12 @@ end
 
 
 
-function backward(f::Cos, gy::Variable{T}) where {T<:Real}
+function backward(f::Cos, gy::Scalar)
     x = f.grad_field.inputs[1]
     return -sin(x) * gy
 end
 
-function backward(f::Cos, gy::Variable{T}) where {T<:AbstractArray}
+function backward(f::Cos, gy::T) where T <: AbstractTensor 
     x = f.grad_field.inputs[1]
     @. return -sin(x) * gy
 end
@@ -53,12 +53,12 @@ end
 
 
 
-function backward(f::Tan, gy::Variable{T}) where {T<:Real}
+function backward(f::Tan, gy::Scalar)
     x = f.grad_field.inputs[1]
     return (1 / (cos(x)^2)) * gy
 end
 
-function backward(f::Tan, gy::Variable{T}) where {T<:AbstractArray}
+function backward(f::Tan, gy::T) where T <: AbstractTensor 
     x = f.grad_field.inputs[1]
     @. return (1 / (cos(x)^2)) * gy
 end
@@ -66,13 +66,13 @@ end
 
 
 
-function backward(f::Log, gy::Variable{T}) where {T<:Real}
+function backward(f::Log, gy::Scalar)
     x = f.grad_field.inputs[1]
     return gy / x
 end
 
 
-function backward(f::Log, gy::Variable{T}) where {T<:AbstractArray}
+function backward(f::Log, gy::T) where T <: AbstractTensor 
     x = f.grad_field.inputs[1]
     @. return gy / x
 end
@@ -81,13 +81,13 @@ end
 
 
 
-function backward(f::Exp, gy::Variable{T}) where {T<:Real}
+function backward(f::Exp, gy::Scalar)
     x = f.grad_field.inputs[1]
     return exp(x) * gy
 end
 
 
-function backward(f::Exp, gy::Variable{T}) where {T<:AbstractArray}
+function backward(f::Exp, gy::T) where T <: AbstractTensor 
     x = f.grad_field.inputs[1]
     @. return exp(x) * gy
 end

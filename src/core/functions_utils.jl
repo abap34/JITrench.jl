@@ -1,3 +1,5 @@
+using .AutoDiff
+
 get_values(x::Variable) = x.values
 get_values(x) = x
 

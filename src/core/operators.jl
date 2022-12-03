@@ -1,3 +1,5 @@
+using .AutoDiff
+
 import Base
 
 mutable struct Add <: SingleReturnFunction
@@ -39,60 +41,59 @@ end
 @inline forward(f::Pow, x1) = x1^f.c
 
 
-function backward(::Add, gy::Variable{T}) where {T<:Real}
+function backward(::Add, gy::Scalar)
     return (gy, gy)
 end
 
-function backward(::Add, gy::Variable{T}) where {T<:AbstractArray}
+function backward(::Add, gy::T) where T <: AbstractTensor 
     @. return (gy, gy)
 end
 
-function backward(::Sub, gy::Variable{T}) where {T<:Real}
+function backward(::Sub, gy::Scalar)
     return (gy, -gy)
 end
 
-
-function backward(::Sub, gy::Variable{T}) where {T<:AbstractArray}
+function backward(::Sub, gy::T) where T <: AbstractTensor
     return (gy, -gy)
 end
 
-function backward(::Neg, gy::Variable{T}) where {T<:Real}
+function backward(::Neg, gy::Scalar)
     return -gy
 end
 
-function backward(::Neg, gy::Variable{T}) where {T<:AbstractArray}
-    @. return -gy
+function backward(::Neg, gy::T) where T <: AbstractTensor 
+    return -gy
 end
 
-function backward(f::Mul, gy::Variable{T}) where {T<:Real}
+function backward(f::Mul, gy::Scalar)
     x1, x2 = f.grad_field.inputs
     return (x2 * gy, x1 * gy)
 end
 
-function backward(f::Mul, gy::Variable{T}) where {T<:AbstractArray}
+function backward(f::Mul, gy::T) where T <: AbstractTensor
     x1, x2 = f.grad_field.inputs
     @. return (x2 .* gy, x1 .* gy)
 end
 
-function backward(f::Div, gy::Variable{T}) where {T<:Real}
+function backward(f::Div, gy::Scalar) r
     x1, x2 = f.grad_field.inputs
     return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy
 end
 
-function backward(f::Div, gy::Variable{T}) where {T<:AbstractArray}
+function backward(f::Div, gy::T) where T <: AbstractTensor
     x1, x2 = f.grad_field.inputs
     @. return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy
 end
 
 
-function backward(f::Pow, gy::Variable{T}) where {T<:Real}
+function backward(f::Pow, gy::Scalar) 
     x = f.grad_field.inputs[1]
     c = f.c
     return (c * (x^(c - 1))) * gy
 end
 
 
-function backward(f::Pow, gy::Variable{T}) where {T<:AbstractArray}
+function backward(f::Pow, gy::T) where T <: AbstractTensor
     x = f.grad_field.inputs[1]
     c = f.c
     @. return (c * (x^(c - 1))) * gy

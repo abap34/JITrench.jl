@@ -1,37 +1,65 @@
 import DataStructures
 
 
-function (f::DiffableFunction)(vars...)
-    f_gradfield = f.grad_field
-    f_gradfield.inputs = collect(vars)
 
-    xs = get_values.(vars)
-    ys = as_tuple(forward(f, xs...))
-
-    f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
-    f_gradfield.outputs = [Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false) for y in ys]
-
-    return length(f_gradfield.outputs) == 1 ? f_gradfield.outputs[1] : f_gradfield.outputs
-end
-
-function (f::SingleReturnFunction)(vars...)
-    f_gradfield = f.grad_field
-    f_gradfield.inputs = collect(vars)
-    for var in vars
-        if var.req_broadcast
-            f = Broadcasting(pure_func(f), f)
-            y = f(vars...)
-            y.req_broadcast = true
-            return y
-        end
+function out_to_tensor(y::T, f::DiffableFunction, generation::Int; device="cpu", idx=0) where T <: AbstractArray
+    if device == "cpu"
+        return [Tensor(y, creator=f, grad=nothing, generation=generation + 1, req_broadcast=false), ]
+    else
+        return [CuTensor(y, creator=f, grad=nothing, generation=generation + 1, req_broadcast=false, device_idx=idx), ]
     end
-    xs = get_values.(vars)
-    y = forward(f, xs...)
-    f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
-    out = Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false)
-    f_gradfield.outputs = [out]
-    return f_gradfield.outputs[1]
 end
+
+
+function (f::DiffableFunction)(var1::T, var2::S) where {T <: Tensor, S <: Tensor}
+    gf = f.grad_field
+    gf.inputs = [var1, var2]
+
+    xs = [var1.values, var2.values]
+    ys = forward(f, var1.values, var2.values)
+
+    gf.generation = min(var1.generation, var2.generation)
+    gf.outputs = out_to_tensor(ys, f, gf.generation, device="cpu")
+
+    return length(gf.outputs) == 1 ? gf.outputs[1] : gf.outputs
+end
+
+
+function (f::DiffableFunction)(var1::T, var2::S) where {T <: CuTensor, S <: CuTensor}
+    if var1.device_idx != var2.device_idx 
+        throw("$(var1.device_idx), $(var2.device_idx)")
+    end
+    gf = f.grad_field
+    gf.inputs = [var1, var2]
+
+    xs = [var1.values, var2.values]
+    ys = forward(f, var1.values, var2.values)
+
+    gf.generation = min(var1.generation, var2.generation)
+    gf.outputs = out_to_tensor(ys, f, gf.generation, device="gpu", idx=var1.device_idx)
+
+    return length(gf.outputs) == 1 ? gf.outputs[1] : gf.outputs
+end
+    
+
+# function (f::SingleReturnFunction)(vars...)
+#     f_gradfield = f.grad_field
+#     f_gradfield.inputs = collect(vars)
+#     for var in vars
+#         if var.req_broadcast
+#             f = Broadcasting(pure_func(f), f)
+#             y = f(vars...)
+#             y.req_broadcast = true
+#             return y
+#         end
+#     end
+#     xs = get_values.(vars)
+#     y = forward(f, xs...)
+#     f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
+#     out = Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false)
+#     f_gradfield.outputs = [out]
+#     return f_gradfield.outputs[1]
+# end
 
 """
     backward(y::Variable; retain_grad=false)

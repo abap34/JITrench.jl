@@ -9,12 +9,12 @@ end
 
 @inline forward(::Sigmoid, x) = _sigmoid(x)
 
-function backward(f::Sigmoid, gy::Variable{T}) where {T<:Real}
+function backward(f::Sigmoid, gy::Scalar)
     y = f.grad_field.outputs[1]
     return (y * (1 - y)) * gy
 end
 
-function backward(f::Sigmoid, gy::Variable{T}) where {T<:AbstractArray}
+function backward(f::Sigmoid, gy::T) where T <: AbstractTensor
     y = f.grad_field.outputs[1]
     @. return (y * (1 - y)) * gy
 end
