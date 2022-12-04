@@ -6,11 +6,10 @@ import Base
 
 include("utils/error.jl")
 
-include("core/variable.jl")
-include("core/functions_utils.jl")
-include("core/function.jl")
+# begin AutoDiff module
+include("core/autodiff/autodiff.jl")
+
 include("core/operators.jl")
-include("core/propagation.jl")
 include("core/math_functions.jl")
 
 
