@@ -1,20 +1,20 @@
-mutable struct Sin <: SingleReturnFunction
+mutable struct Sin <: BinaryOperation
     grad_field::GradField
 end
 
-mutable struct Cos <: SingleReturnFunction
+mutable struct Cos <: BinaryOperation
     grad_field::GradField
 end
 
-mutable struct Tan <: SingleReturnFunction
+mutable struct Tan <: BinaryOperation
     grad_field::GradField
 end
 
-mutable struct Log <: SingleReturnFunction
+mutable struct Log <: BinaryOperation
     grad_field::GradField
 end
 
-mutable struct Exp <: SingleReturnFunction
+mutable struct Exp <: BinaryOperation
     grad_field::GradField
 end
 
