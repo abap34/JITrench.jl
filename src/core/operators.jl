@@ -1,44 +1,45 @@
 using .AutoDiff
+import .AutoDiff: AutoDiff.forward
 
 import Base
 
-mutable struct Add <: SingleReturnFunction
+mutable struct Add <: BinaryOperation
     grad_field::GradField
 end
 
-mutable struct Sub <: SingleReturnFunction
+mutable struct Sub <: BinaryOperation
     grad_field::GradField
 end
 
-mutable struct Neg <: SingleReturnFunction
+mutable struct Neg <: BinaryOperation
     grad_field::GradField
 end
 
-mutable struct Mul <: SingleReturnFunction
-    grad_field::GradField
-end
-
-
-mutable struct Div <: SingleReturnFunction
+mutable struct Mul <: BinaryOperation
     grad_field::GradField
 end
 
 
-mutable struct Pow{T} <: SingleReturnFunction
+mutable struct Div <: BinaryOperation
+    grad_field::GradField
+end
+
+
+mutable struct Pow{T} <: BinaryOperation
     grad_field::GradField
     c::T
 end
 
 
-@inline forward(::Add, x1, x2) = x1 + x2
+@inline AutoDiff.forward(::Add, x1, x2) = x1 + x2
 # case: a - b
-@inline forward(::Sub, x1, x2) = x1 - x2
+@inline AutoDiff.forward(::Sub, x1, x2) = x1 - x2
 # case: -a
-@inline forward(::Sub, x) = -x
-@inline forward(::Neg, x) = -x
-@inline forward(::Mul, x1, x2) = x1 * x2
-@inline forward(::Div, x1, x2) = x1 / x2
-@inline forward(f::Pow, x1) = x1^f.c
+@inline AutoDiff.forward(::Sub, x) = -x
+@inline AutoDiff.forward(::Neg, x) = -x
+@inline AutoDiff.forward(::Mul, x1, x2) = x1 * x2
+@inline AutoDiff.forward(::Div, x1, x2) = x1 / x2
+@inline AutoDiff.forward(f::Pow, x1) = x1^f.c
 
 
 function backward(::Add, gy::Scalar)
@@ -83,7 +84,7 @@ end
 function backward(f::Div, gy::T) where T <: AbstractTensor
     x1, x2 = f.grad_field.inputs
     @. return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy
-end
+end    
 
 
 function backward(f::Pow, gy::Scalar) 
@@ -106,10 +107,10 @@ const normal_operators = Dict(
     :/ => Div,
 )
 
-
-Base.:-(x::Variable) = Neg(GradField())(x)
+Base.:-(x::T) where T <: Variable = Neg(GradField())(x)
 pure_func(::Neg) = -
 Base.:^(x::Variable, c) = Pow(GradField(), c)(x)
+
 is_support(::typeof(^)) = true
 jt_func(::typeof(^)) = Pow
 pure_func(::Pow) = ^
@@ -119,7 +120,7 @@ for (op, jt_func) in normal_operators
     @eval is_support_broadcast(::typeof(Base.$op)) = true
     @eval jt_func(::typeof(Base.$op)) = $jt_func
     @eval pure_func(::$(jt_func)) = Base.$op
-    @eval Base.$op(x1::Variable, x2::Real) = Base.$op(promote(x1, x2)...)
-    @eval Base.$op(x1::Real, x2::Variable) = Base.$op(promote(x1, x2)...)
-    @eval Base.$op(x1::Variable, x2::Variable) = $jt_func(GradField())(x1, x2)
+    @eval Base.$op(x1::T, x2::R) where {T <: Variable, R <: Real} = Base.$op(promote(x1, x2)...)
+    @eval Base.$op(x1::R, x2::T) where {T <: Variable, R <: Real} = Base.$op(promote(x1, x2)...)
+    @eval Base.$op(x1::T, x2::S) where {T <: Variable, S <: Variable} = $jt_func(GradField())(x1, x2)
 end
