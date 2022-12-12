@@ -1,7 +1,8 @@
 import Base
+using .AutoDiff
 
 mutable struct Reshape <: DiffableFunction
-    grad_field::GradField
+    grad_field :: GradField
     in_shape :: Tuple
     out_shape :: Tuple
     Reshape(in_shape, out_shape) = new(GradField(), in_shape, out_shape)

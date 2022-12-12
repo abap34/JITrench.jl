@@ -1,4 +1,5 @@
 import Base
+using .AutoDiff
 
 mutable struct Broadcasting{F} <: DiffableFunction
     f :: F

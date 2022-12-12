@@ -1,4 +1,6 @@
-mutable struct Sigmoid <: SingleReturnFunction
+using .AutoDiff
+
+mutable struct Sigmoid <: DiffableFunction
     grad_field::GradField
 end
 
