@@ -89,15 +89,15 @@ end
     set_grad!(x, x.grad, gx)
 end
 
-@inline function set_grad!(x::T, x_grad::Nothing, gx::S) where {T <: Variable, S}
+@inline function set_grad!(x::T, ::Nothing, gx::S) where {T <: Variable, S}
     x.grad = gx
 end
 
-@inline function set_grad!(x::T1, x_grad::T2, gx::S) where {T1 <: Variable, T2, S}
+@inline function set_grad!(x::T1, ::T2, gx::S) where {T1 <: Variable, T2, S}
     x.grad = x.grad + gx
 end
 
-@inline function update_que!(f::BinaryOperator, seen_set::Set{DiffableFunction}, pq::PriorityQueue{DiffableFunction, Int})
+@inline function update_que!(f::F, seen_set::Set{DiffableFunction}, pq::PriorityQueue{DiffableFunction, Int}) where {F <: DiffableFunction}
     if !(f in seen_set)
         push!(seen_set, f)
         DataStructures.enqueue!(pq, f, f.grad_field.generation) 
@@ -106,7 +106,7 @@ end
 
 
 @inline function update_que!(f::Nothing, seen_set::Set{DiffableFunction}, pq::PriorityQueue{DiffableFunction, Int})
-    # nothing to DiffableFunction
+    # nothing to do
 end
 
 function backward!(y::Scalar; retain_grad=false, create_graph=false)
@@ -118,7 +118,7 @@ function backward!(y::Scalar; retain_grad=false, create_graph=false)
         else
             y.grad = ones_like(y.values)
         end
-    end
+    end 
     DataStructures.enqueue!(que, y.creator, 1)
     push!(seen_set, y.creator)
     while !(isempty(que))
@@ -128,7 +128,7 @@ function backward!(y::Scalar; retain_grad=false, create_graph=false)
     return nothing
 end
 
-function calculate_grad!(f::BinaryOperator, seen_set, que; retain_grad=false)
+function calculate_grad!(f::BinaryOperator, seen_set::Set{DiffableFunction}, que::PriorityQueue{DiffableFunction, Int}; retain_grad=false)
     gy = get_gy(f)
     gx1, gx2 = JITrench.backward(f, gy)
     x1, x2 = f.grad_field.inputs
@@ -141,4 +141,19 @@ function calculate_grad!(f::BinaryOperator, seen_set, que; retain_grad=false)
     if !(retain_grad)
         f.grad_field.output.grad = nothing
     end
+    return nothing
+end
+
+
+function calculate_grad!(f::UnaryOperator, seen_set::Set{DiffableFunction}, que::PriorityQueue{DiffableFunction, Int}; retain_grad=false)
+    gy = get_gy(f)
+    gx = JITrench.backward(f, gy)
+    x = f.grad_field.inputs[1]   
+    set_grad!(x, gx)
+    f_c = x.creator
+    update_que!(f_c, seen_set, que)
+    if !(retain_grad)
+        f.grad_field.output.grad = nothing
+    end
+    return nothing
 end
