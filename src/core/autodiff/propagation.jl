@@ -1,129 +1,144 @@
-import DataStructures
 using ..JITrench
+import DataStructures
 
-
-forward(args...) = "no impl"
-
-
-function out_to_tensor(y::T, f::F, generation::Int, device::CPU) where {T <: AbstractArray, F <: DiffableFunction}
-    return [Tensor(y, creator=f, grad=nothing, generation=generation + 1, req_broadcast=false), ]
+function forward(args...)
+    @show args
 end
 
-function out_to_tensor(y::T, f::F, generation::Int, device::GPU) where {T <: CuArray, F <: DiffableFunction}
-    return [CuTensor(y, creator=f, grad=nothing, generation=generation + 1, req_broadcast=false, device_idx=device.idx)]
+function out_to_tensor(y::T, generation::Int) where {T<:Real} 
+    return Scalar(y, creator=nothing, grad=nothing, generation=generation + 1, req_broadcast=false)
+end
+
+function out_to_tensor(y::T, generation::Int) where {T<:AbstractArray}
+    return Tensor(y, creator=nothing, grad=nothing, generation=generation + 1, req_broadcast=false)
+end
+
+function out_to_tensor(y::T, generation::Int, device_idx::Int) where {T<:CuArray}
+    return CuTensor(y, creator=nothing, grad=nothing, generation=generation + 1, req_broadcast=false, device_idx=device_idx)
+end
+
+function call!(F::Type{<:UnaryOperator}, x::T, optinal_args...; nograd=false) where {T<:Variable}
+    inputs = (x, )
+    y = forward(F, x.values)
+    (nograd) && (return y)
+    gen = x.generation
+    gf = GradField(
+            inputs,
+            out_to_tensor(y, gen),
+            gen
+        ) 
+    func = F(gf, optinal_args...)
+    gf.output.creator = func
+    return gf.output
 end
 
 
-function (f::BinaryOperation)(var1::T, var2::S) where {T <: Tensor, S <: Tensor}
-    gf = f.grad_field
-    gf.inputs = [var1, var2]
+function call!(F::Type{<:BinaryOperator}, x1::T, x2::T, optinal_args...; nograd=false) where {T<:Variable}
+    inputs = (x1, x2)
+    y = forward(F, x1.values, x2.values)
+    (nograd) && (return y)
+    gen = min(x1.generation, x2.generation)
+    gf = GradField(
+            inputs,
+            out_to_tensor(y, gen),
+            gen
+        ) 
+    func = F(gf, optinal_args...)
+    gf.output.creator = func
+    return gf.output
+end
 
-    xs = [var1.values, var2.values]
-    ys = forward(f, var1.values, var2.values)
-
-    gf.generation = min(var1.generation, var2.generation)
-    gf.outputs = out_to_tensor(ys, f, gf.generation, CPU())
-
-    return length(gf.outputs) == 1 ? gf.outputs[1] : gf.outputs
+function call!(F::Type{<:BinaryOperator}, x1::T, x2::S, optinal_args...; nograd=false) where {T <: Variable, S <: Variable}
+    inputs = (x1, x2)
+    y = forward(F, x1.values, x2.values)
+    (nograd) && (return y)
+    gen = min(x1.generation, x2.generation)
+    gf = GradField(
+        inputs, 
+        out_to_tensor(y, gen),
+        gen
+    )
+    func = F(gf, optinal_args...)
+    gf.output.creator = func
+    return gf.output
 end
 
 
-function (f::BinaryOperation)(var1::T, var2::S) where {T <: CuTensor, S <: CuTensor}
-    if var1.device.idx != var2.device.idx 
-        throw("$(var1.device_idx), $(var2.device_idx)")
+function call!(F::Type{<:BinaryOperator}, x1::T, x2::T, optinal_args...; nograd=false) where {T <: CuTensor}
+    device_idx = check_same_device(x1.device, x2.device)
+    inputs = (x1, x2)
+    y = forward(F, x1.values, x2.values)
+    (nograd) && (return y)
+    gen = min(x1.generation, x2.generation)
+    gf = GradField(
+        inputs, 
+        out_to_tensor(y, gen, device_idx),
+        gen
+    )
+    func = F(gf, optinal_args...)
+    gf.output.creator = func
+    return gf.output
+end
+
+
+@inline ones_like(x::CuTensor) = CuTensor(ones(eltype(x.values), size(x.values)), device_idx=x.device.idx)
+
+@inline get_gy(f::F) where {F <: DiffableFunction} = f.grad_field.output.grad
+
+@inline function set_grad!(x::T, gx::S) where {T <: Variable, S}
+    set_grad!(x, x.grad, gx)
+end
+
+@inline function set_grad!(x::T, x_grad::Nothing, gx::S) where {T <: Variable, S}
+    x.grad = gx
+end
+
+@inline function set_grad!(x::T1, x_grad::T2, gx::S) where {T1 <: Variable, T2, S}
+    x.grad = x.grad + gx
+end
+
+@inline function update_que!(f::BinaryOperator, seen_set::Set{DiffableFunction}, pq::PriorityQueue{DiffableFunction, Int})
+    if !(f in seen_set)
+        push!(seen_set, f)
+        DataStructures.enqueue!(pq, f, f.grad_field.generation) 
     end
-    gf = f.grad_field
-    gf.inputs = [var1, var2]
-
-    xs = [var1.values, var2.values]
-    y = forward(f, var1.values, var2.values)
-
-    gf.generation = min(var1.generation, var2.generation)
-    gf.outputs = out_to_tensor(y, f, gf.generation, var1.device)
-
-    return length(gf.outputs) == 1 ? gf.outputs[1] : gf.outputs
 end
-    
 
-# function (f::SingleReturnFunction)(vars...)
-#     f_gradfield = f.grad_field
-#     f_gradfield.inputs = collect(vars)
-#     for var in vars
-#         if var.req_broadcast
-#             f = Broadcasting(pure_func(f), f)
-#             y = f(vars...)
-#             y.req_broadcast = true
-#             return y
-#         end
-#     end
-#     xs = get_values.(vars)
-#     y = forward(f, xs...)
-#     f_gradfield.generation = minimum((x -> x.generation), f_gradfield.inputs)
-#     out = Variable(y, creator=f, grad=nothing, generation=f_gradfield.generation + 1, req_broadcast=false)
-#     f_gradfield.outputs = [out]
-#     return f_gradfield.outputs[1]
-# end
 
-"""
-    backward(y::Variable; retain_grad=false)
-Compute the back propagation, `y` as the end of the computational graph.
-For a more detailed explanation, see the documentation (here).
+@inline function update_que!(f::Nothing, seen_set::Set{DiffableFunction}, pq::PriorityQueue{DiffableFunction, Int})
+    # nothing to DiffableFunction
+end
 
-```julia-repl
-julia> x
-name: nothing 
-values: 1
-creator: User-Defined(nothing)
-
-julia> x = Variable(1)
-name: nothing 
-values: 1
-creator: User-Defined(nothing)
-
-julia> y = x +  2
-name: nothing 
-values: 3
-creator: JITrench.Add
-
-julia> backward!(y)
-
-julia> x.grad
-name: nothing 
-values: 1
-creator: User-Defined(nothing)
-```
-"""
-function backward!(y::Variable; retain_grad=false)
-    funcs = DataStructures.PriorityQueue{DiffableFunction,Int}(Base.Order.Reverse)
+function backward!(y::Scalar; retain_grad=false, create_graph=false)
+    que = DataStructures.PriorityQueue{DiffableFunction,Int}(Base.Order.Reverse)
     seen_set = Set{DiffableFunction}()
     if y.grad isa Nothing
-        y.grad = Variable(ones_like(y.values))
+        if create_graph
+            y.grad = ones_like(y)
+        else
+            y.grad = ones_like(y.values)
+        end
     end
-    DataStructures.enqueue!(funcs, y.creator, 1)
+    DataStructures.enqueue!(que, y.creator, 1)
     push!(seen_set, y.creator)
-    while !(isempty(funcs))
-        f = DataStructures.dequeue!(funcs)
-        if f isa SingleReturnFunction
-            gy = [f.grad_field.outputs[1].grad]
-        end
-        gy = [output.grad for output in f.grad_field.outputs]
-        gxs = as_tuple(backward(f, gy...))
-        for (x, gx) in zip(f.grad_field.inputs, gxs)
-            if x.grad isa Nothing
-                x.grad = gx
-            else
-                x.grad = x.grad + gx
-            end
-            if (!(isnothing(x.creator))) && (!(x.creator in seen_set))
-                push!(seen_set, x.creator)
-                DataStructures.enqueue!(funcs, x.creator, x.creator.grad_field.generation)
-            end
-        end
-        if !(retain_grad)
-            for y in f.grad_field.outputs
-                y.grad = nothing
-            end
-        end
+    while !(isempty(que))
+        f = DataStructures.dequeue!(que)
+        calculate_grad!(f, seen_set, que, retain_grad=retain_grad)
     end
     return nothing
+end
+
+function calculate_grad!(f::BinaryOperator, seen_set, que; retain_grad=false)
+    gy = get_gy(f)
+    gx1, gx2 = JITrench.backward(f, gy)
+    x1, x2 = f.grad_field.inputs
+    set_grad!(x1, gx1)
+    set_grad!(x2, gx2)
+    f1 = x1.creator
+    f2 = x2.creator
+    update_que!(f1, seen_set, que)
+    update_que!(f2, seen_set, que)
+    if !(retain_grad)
+        f.grad_field.output.grad = nothing
+    end
 end
