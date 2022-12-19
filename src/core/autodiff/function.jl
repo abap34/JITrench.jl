@@ -1,18 +1,16 @@
-"""
-    GradField
-A structure that contains all the necessary items for automatic differentiation.
-All function types in JITrench have this type as a field named "grad_field".
-"""
-mutable struct GradField
-    inputs
-    outputs
-    generation::Union{Nothing, Int}
-    function GradField(;inputs=nothing, outputs=nothing, generation=nothing)
-        new(inputs, outputs, generation)
+abstract type AbstractGradField end
+
+struct GradField{T, S} 
+    inputs :: T
+    output :: S
+    generation::Int
+    function GradField(inputs::T, output::S, generation::Int) where {T <: Tuple, S <: Variable}
+        new{T, S}(inputs, output, generation)
     end
 end
 
-abstract type BinaryOperation <: DiffableFunction end
+abstract type BinaryOperator <: DiffableFunction end
+abstract type UnaryOperator <: DiffableFunction end
 
 function Base.show(io::IO, f::DiffableFunction)
     print(io, typeof(f))
@@ -22,10 +20,9 @@ function Base.show(io::IO, ::MIME"text/plain", f::DiffableFunction)
     print(
         io,
         """
-Type: $(typeof(f))
-  GradField:
+$(typeof(f))
     inputs: $(f.grad_field.inputs)
-    outputs: $(f.grad_field.outputs)
+    output: $(f.grad_field.output)
     generation: $(f.grad_field.generation)"""
     )
 end
