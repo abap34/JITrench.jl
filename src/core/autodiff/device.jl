@@ -11,3 +11,15 @@ struct GPU <: Device
     return new(idx)
     end
 end
+
+check_same_device(device1::T, device2::T) where T <: Device = nothing
+
+check_same_device(device1::CPU, device2::GPU) = throw(NotSameDeviceError(true, false))
+
+function check_same_device(device1::GPU, device2::GPU)
+    if device1.idx != device2.idx
+        throw(NotSameDeviceError(same_accelerator=true, same_gpu_idx=false))
+    else
+        return device1.idx
+    end
+end
