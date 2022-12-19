@@ -8,6 +8,7 @@ include("utils/error.jl")
 
 # begin AutoDiff module
 include("core/autodiff/autodiff.jl")
+# end
 
 include("core/operators.jl")
 include("core/math_functions.jl")
