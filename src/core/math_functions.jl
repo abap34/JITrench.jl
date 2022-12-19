@@ -1,20 +1,20 @@
-mutable struct Sin <: BinaryOperation
+mutable struct Sin <: BinaryOperator
     grad_field::GradField
 end
 
-mutable struct Cos <: BinaryOperation
+mutable struct Cos <: BinaryOperator
     grad_field::GradField
 end
 
-mutable struct Tan <: BinaryOperation
+mutable struct Tan <: BinaryOperator
     grad_field::GradField
 end
 
-mutable struct Log <: BinaryOperation
+mutable struct Log <: BinaryOperator
     grad_field::GradField
 end
 
-mutable struct Exp <: BinaryOperation
+mutable struct Exp <: BinaryOperator
     grad_field::GradField
 end
 
@@ -31,7 +31,7 @@ function backward(f::Sin, gy::Scalar)
 end
 
 
-function backward(f::Sin, gy::T) where T <: AbstractTensor 
+function backward(f::Sin, gy::T) where {T<:AbstractTensor}
     x = f.grad_field.inputs[1]
     @. return cos(x) * gy
 end
@@ -44,7 +44,7 @@ function backward(f::Cos, gy::Scalar)
     return -sin(x) * gy
 end
 
-function backward(f::Cos, gy::T) where T <: AbstractTensor 
+function backward(f::Cos, gy::T) where {T<:AbstractTensor}
     x = f.grad_field.inputs[1]
     @. return -sin(x) * gy
 end
@@ -58,7 +58,7 @@ function backward(f::Tan, gy::Scalar)
     return (1 / (cos(x)^2)) * gy
 end
 
-function backward(f::Tan, gy::T) where T <: AbstractTensor 
+function backward(f::Tan, gy::T) where {T<:AbstractTensor}
     x = f.grad_field.inputs[1]
     @. return (1 / (cos(x)^2)) * gy
 end
@@ -72,7 +72,7 @@ function backward(f::Log, gy::Scalar)
 end
 
 
-function backward(f::Log, gy::T) where T <: AbstractTensor 
+function backward(f::Log, gy::T) where {T<:AbstractTensor}
     x = f.grad_field.inputs[1]
     @. return gy / x
 end
@@ -87,7 +87,7 @@ function backward(f::Exp, gy::Scalar)
 end
 
 
-function backward(f::Exp, gy::T) where T <: AbstractTensor 
+function backward(f::Exp, gy::T) where {T<:AbstractTensor}
     x = f.grad_field.inputs[1]
     @. return exp(x) * gy
 end
