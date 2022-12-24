@@ -37,7 +37,7 @@ function _dot_var(var::Scalar)
     end
     
     if var.name !== nothing
-        return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name)</b>$(var.values)>, color=\"$color\", style=filled]\n"
+        return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name) : </b>$(var.values)>, color=\"$color\", style=filled]\n"
     else
         return "$(objectid(var)) [shape=$shape, label=\"$(var.values)\", color=\"$color\", style=filled]\n"
     end
@@ -53,9 +53,9 @@ function _dot_var(var::Tensor)
     end 
     
     if var.name !== nothing
-        return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name)</b>$(typeof(var.values))>, color=\"$color\", style=filled]\n"
+        return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name) : </b>$(typeof(var))>, color=\"$color\", style=filled]\n"
     else
-        return "$(objectid(var)) [shape=$shape, label=\"$(typeof(var.values))\", color=\"$color\", style=filled]\n"
+        return "$(objectid(var)) [shape=$shape, label=\"$(typeof(var))\", color=\"$color\", style=filled]\n"
     end
 end
 
@@ -65,9 +65,7 @@ function _dot_func(f::DiffableFunction)
     for x in f.grad_field.inputs
         txt *= "$(objectid(x)) -> $(objectid(f))\n"
     end
-    for y in f.grad_field.outputs
-        txt *= "$(objectid(f)) -> $(objectid(y))\n"
-    end
+    txt *= "$(objectid(f)) -> $(objectid(f.grad_field.output))\n"
     return txt
 end
 
