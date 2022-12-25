@@ -3,21 +3,25 @@ import DataStructures
 
 function forward(args...)
     @show args
+    throw(NotImplemetedError())
 end
 
-function out_to_tensor(y::T, generation::Int) where {T<:Real} 
-    return Scalar(y, creator=nothing, grad=nothing, generation=generation + 1, req_broadcast=false)
+function out_to_tensor(y::T, generation::Int; creator=nothing, grad=nothing, req_broadcast=false) where {T<:Real} 
+    return Scalar(y, creator=creator, grad=grad, generation=generation + 1, req_broadcast=req_broadcast)
 end
 
-function out_to_tensor(y::T, generation::Int) where {T<:AbstractArray}
-    return Tensor(y, creator=nothing, grad=nothing, generation=generation + 1, req_broadcast=false)
+function out_to_tensor(y::T, generation::Int; creator=nothing, grad=nothing, req_broadcast=false) where {T<:AbstractArray}
+    return Tensor(y, creator=creator, grad=grad, generation=generation + 1, req_broadcast=req_broadcast)
 end
 
-function out_to_tensor(y::T, generation::Int, device_idx::Int) where {T<:CuArray}
-    return CuTensor(y, creator=nothing, grad=nothing, generation=generation + 1, req_broadcast=false, device_idx=device_idx)
+function out_to_tensor(y::T, generation::Int, device_idx::Int; creator=nothing, grad=nothing, req_broadcast=false) where {T<:CuArray}
+    return CuTensor(y, creator=creator, grad=grad, generation=generation + 1, req_broadcast=req_broadcast, device_idx=device_idx)
 end
 
 function call!(F::Type{<:UnaryOperator}, x::T, optinal_args...; nograd=false) where {T<:Variable}
+    if x.req_broadcast
+        return call!(JITrench.Broadcasting{F}, x)
+    end
     inputs = (x, )
     y = forward(F, x.values)
     (nograd) && (return y)
@@ -79,7 +83,6 @@ function call!(F::Type{<:BinaryOperator}, x1::T, x2::T, optinal_args...; nograd=
     gf.output.creator = func
     return gf.output
 end
-
 
 @inline ones_like(x::CuTensor) = CuTensor(ones(eltype(x.values), size(x.values)), device_idx=x.device.idx)
 
