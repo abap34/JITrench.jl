@@ -25,3 +25,14 @@ function Base.showerror(io::IO, e::NotSameDeviceError)
         print(io, "All arguments must be in the same device. Arguments are on different GPUs.")
     end
 end
+
+
+struct BroadcastCallError <: Exception  end
+
+Base.showerror(io::IO, e::NotImplemetedError) = print(io, "Please call this function with `req_broadcast")
+
+function check_broadcastable(x::T) where T <: Variable
+    if !(x.req_broadcast)
+        throw(BroadcastCallError())
+    end
+end
