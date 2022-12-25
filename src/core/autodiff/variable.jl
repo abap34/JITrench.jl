@@ -75,7 +75,7 @@ function get_output_str(var::Variable)
         output *= "grad: $(var.grad)\n"
     end
     if (var.creator !== nothing)
-        output *= "creator: $(typeof(var.creator))"
+        output *= "creator: $(repr(var.creator))"
     else
         output *= "creator: User-Defined(nothing)"
     end
