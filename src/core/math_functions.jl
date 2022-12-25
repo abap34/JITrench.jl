@@ -1,111 +1,100 @@
-mutable struct Sin <: BinaryOperator
+using .AutoDiff
+import .AutoDiff: forward, call!
+import Base
+
+struct Sin <: UnaryOperator
     grad_field::GradField
 end
 
-mutable struct Cos <: BinaryOperator
+struct Cos <: UnaryOperator
     grad_field::GradField
 end
 
-mutable struct Tan <: BinaryOperator
+struct Tan <: UnaryOperator
     grad_field::GradField
 end
 
-mutable struct Log <: BinaryOperator
+struct Log <: UnaryOperator
     grad_field::GradField
 end
 
-mutable struct Exp <: BinaryOperator
+struct Exp <: UnaryOperator
     grad_field::GradField
 end
 
-@inline forward(::Sin, x) = sin(x)
-@inline forward(::Cos, x) = cos(x)
-@inline forward(::Tan, x) = tan(x)
-@inline forward(::Log, x) = log(x)
-@inline forward(::Exp, x) = exp(x)
+struct Square <: UnaryOperator
+    grad_field::GradField
+end
 
+@inline forward(::Type{Sin}, x) = sin(x)
+@inline forward(::Type{Cos}, x) = cos(x)
+@inline forward(::Type{Tan}, x) = tan(x)
+@inline forward(::Type{Log}, x) = log(x)
+@inline forward(::Type{Exp}, x) = exp(x)
+@inline forward(::Type{Square}, x) = x^2
 
-function backward(f::Sin, gy::Scalar)
+function backward(f::Sin, gy::T) where T <: ScalarTypes
     x = f.grad_field.inputs[1]
     return cos(x) * gy
 end
 
-
-function backward(f::Sin, gy::T) where {T<:AbstractTensor}
-    x = f.grad_field.inputs[1]
-    @. return cos(x) * gy
-end
-
-
-
-
-function backward(f::Cos, gy::Scalar)
+function backward(f::Cos, gy::T) where T <: ScalarTypes
     x = f.grad_field.inputs[1]
     return -sin(x) * gy
 end
 
-function backward(f::Cos, gy::T) where {T<:AbstractTensor}
-    x = f.grad_field.inputs[1]
-    @. return -sin(x) * gy
-end
-
-
-
-
-
-function backward(f::Tan, gy::Scalar)
+function backward(f::Tan, gy::T) where T <: ScalarTypes
     x = f.grad_field.inputs[1]
     return (1 / (cos(x)^2)) * gy
 end
 
-function backward(f::Tan, gy::T) where {T<:AbstractTensor}
-    x = f.grad_field.inputs[1]
-    @. return (1 / (cos(x)^2)) * gy
-end
-
-
-
-
-function backward(f::Log, gy::Scalar)
+function backward(f::Log, gy::T) where T <: ScalarTypes
     x = f.grad_field.inputs[1]
     return gy / x
 end
 
 
-function backward(f::Log, gy::T) where {T<:AbstractTensor}
-    x = f.grad_field.inputs[1]
-    @. return gy / x
-end
-
-
-
-
-
-function backward(f::Exp, gy::Scalar)
+function backward(f::Exp, gy::T) where T <: ScalarTypes
     x = f.grad_field.inputs[1]
     return exp(x) * gy
 end
 
-
-function backward(f::Exp, gy::T) where {T<:AbstractTensor}
+function backward(f::Square, gy::T) where T <: ScalarTypes
     x = f.grad_field.inputs[1]
-    @. return exp(x) * gy
+    return 2x * gy
 end
 
 
-const math_functions = Dict(
-    :(Base.sin) => Sin,
-    :(Base.cos) => Cos,
-    :(Base.tan) => Tan,
-    :(Base.log) => Log,
-    :(Base.exp) => Exp
-)
+Base.sin(x::T) where T <: Scalar = call!(Sin, x)
+Base.cos(x::T) where T <: Scalar = call!(Cos, x)
+Base.tan(x::T) where T <: Scalar = call!(Tan, x)
+Base.log(x::T) where T <: Scalar = call!(Log, x)
+Base.exp(x::T) where T <: Scalar = call!(Exp, x)
 
-for (func, jt_func) in math_functions
-    @eval $func(x::Variable) = $jt_func(GradField())(x)
-    @eval is_support(::typeof($func)) = true
-    @eval is_support_broadcast(::typeof($func)) = true
-    @eval jt_func(::typeof($func)) = $jt_func
-    @eval pure_func(::$(jt_func)) = $func
+function Base.sin(x::T) where T <: AbstractTensor 
+    check_broadcastable(x)
+    call!(Sin, x)
 end
 
+function Base.cos(x::T) where T <: AbstractTensor 
+    check_broadcastable(x)
+    call!(Cos, x)
+end
+
+function Base.tan(x::T) where T <: AbstractTensor 
+    check_broadcastable(x)
+    call!(Tan, x)
+end
+
+function Base.log(x::T) where T <: AbstractTensor 
+    check_broadcastable(x)
+    call!(Log, x)
+end
+
+function Base.exp(x::T) where T <: AbstractTensor 
+    check_broadcastable(x)
+    call!(Exp, x)
+end
+
+
+Base.literal_pow(::typeof(^), x::T, ::Val{2}) where T <: Scalar = call!(Square, x)
