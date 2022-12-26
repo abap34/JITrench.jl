@@ -1,13 +1,26 @@
 import Base
 using .AutoDiff
+import .AutoDiff: call!, out_to_tensor
 
 mutable struct Broadcasting{F} <: DiffableFunction
-    f :: F
-    true_func :: DiffableFunction
     grad_field :: GradField
 end
 
-Broadcasting(f, true_func) = Broadcasting(f, true_func, GradField()) 
+function call!(F::Type{Broadcasting{TF}}, x::Tensor) where TF <: UnaryOperator
+    inputs = (x, )
+    y = forward.(TF, x.values)
+    gen = x.generation
+    gf = GradField(
+        inputs,
+        out_to_tensor(y, gen, req_broadcast=true),
+        gen
+    )
+    func = Broadcasting{TF}(
+        gf
+    )
+    gf.output.creator = func
+    return gf.output
+end
 
 _func_to_jt_struct = Dict(
     (+) => Add, 
@@ -22,18 +35,18 @@ _func_to_jt_struct = Dict(
     (exp) => Exp
 )
 
-Base.broadcasted(::typeof(|>), x::Variable, f) = Base.broadcasted(f, x)
+Base.broadcasted(::typeof(|>), x::T, f) where T <: AbstractTensor = Base.broadcasted(f, x)
 
-# fix https://github.com/abap34/JITrench.jl/issues/11
-Base.broadcasted(::typeof(Base.literal_pow), ::typeof(^), x::Variable, ::Val{c}) where c = Broadcasting(^, Pow(GradField(), c))(x)
-Base.broadcasted(::typeof(^), x::Variable, c) = Broadcasting(^, Pow(GradField(), c))(x)
+# # fix https://github.com/abap34/JITrench.jl/issues/11
+# Base.broadcasted(::typeof(Base.literal_pow), ::typeof(^), x::Variable, ::Val{c}) where c = Broadcasting(^, Pow(GradField(), c))(x)
+# Base.broadcasted(::typeof(^), x::Variable, c) = Broadcasting(^, Pow(GradField(), c))(x)
 
 for (func, jt_func) in _func_to_jt_struct
     (func == ^) && (continue)
-    Base.broadcasted(::typeof(func), x::Variable...) = Broadcasting(func, jt_func(GradField()))(x...)
-    Base.broadcasted(::typeof(func), x1::Variable, x2) = Broadcasting(func, jt_func(GradField()))(x1, Variable(x2))
-    Base.broadcasted(::typeof(func), x1, x2::Variable) = Broadcasting(func, jt_func(GradField()))(Variable(x1), x2)
+    Base.broadcasted(::typeof(func), x::T) where T <: AbstractTensor = call!(Broadcasting{jt_func}, x)
 end
+
+
 
 function forward(f::Broadcasting, x...)
     Base.materialize(Base.broadcasted(f.f, x...))
@@ -59,4 +72,12 @@ function backward(f::Broadcasting, gy)
         end
         return gx1, gx2
     end
+end
+
+
+function Base.broadcasted(f::Function, x::T) where T <: AbstractTensor
+    x.req_broadcast = true
+    y = f(x)
+    y.req_broadcast = false
+    return y
 end
