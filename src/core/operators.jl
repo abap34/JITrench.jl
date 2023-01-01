@@ -1,5 +1,5 @@
 using .AutoDiff
-import .AutoDiff: forward, call!
+import .AutoDiff: forward, backward, call!
 import Base
 
 struct Add <: BinaryOperator
@@ -23,22 +23,24 @@ struct Div <: BinaryOperator
     grad_field::GradField
 end
 
+struct PowField{R <: Real} <: AdditionalField
+    c :: R
+end
 
-struct Pow{T} <: UnaryOperator
+struct Pow{R} <: UnaryOperator
     grad_field::GradField
-    c::T
+    additional_field::PowField{R}
 end
 
 
+
 @inline forward(::Type{Add}, x1, x2) = x1 + x2
-# case: a - b
 @inline forward(::Type{Sub}, x1, x2) = x1 - x2
-# case: -a
 @inline forward(::Type{Sub}, x) = -x
 @inline forward(::Type{Neg}, x) = -x
 @inline forward(::Type{Mul}, x1, x2) = x1 * x2
 @inline forward(::Type{Div}, x1, x2) = x1 / x2
-@inline forward(f::Type{Pow}, x1) = x1^f.c
+@inline forward(::Type{Pow}, pow_field::PowField, x1) = x1^(pow_field.c)
 
 const ScalarTypes = Union{Real, Scalar}
 const TensorTypes = Union{AbstractArray, Tensor, CuTensor}
@@ -78,14 +80,14 @@ end
 
 function backward(f::Pow, gy::R) where R <: ScalarTypes 
     x = f.grad_field.inputs[1]
-    c = f.c
+    c = f.additional_field.c
     return (c * (x^(c - 1))) * gy
 end
 
 
 function backward(f::Pow, gy::T) where T <: TensorTypes
     x = f.grad_field.inputs[1]
-    c = f.c
+    c = f.additional_field.c
     @. return (c * (x^(c - 1))) * gy
 end
 
@@ -94,13 +96,17 @@ Base.:+(x1::T, x2::T) where {T <: Scalar} = call!(Add, x1, x2)
 Base.:+(x1::T, x2::R) where {T <: Scalar, R <: Real} = call!(Add, x1, Scalar(x2))
 Base.:+(x1::R, x2::T) where {T <: Scalar, R <: Real} = call!(Add, Scalar(x1), x2)
 
-Base.:+(x1::T, x2::T) where {T <: Tensor} = call!(Add, x1, x2)
-Base.:+(x1::T, x2::S) where {T <: Tensor, S <: AbstractArray} = call!(Add, x1, Tensor(x2))
+function Base.:+(x1::T, x2::T) where {T <: Tensor}
+    check_sameshape(x1, x2)
+    call!(Add, x1, x2)
+end
+
+Base.:+(x1::T, x2::S) where {T <: Tensor, S <: AbstractArray} = call!(Add, x1, Tensor(x2)) 
 Base.:+(x1::S, x2::T) where {T <: Tensor, S <: AbstractArray} = call!(Add, Tensor(x1), x2)
 
-Base.:+(x1::T, x2::T) where {T <: CuTensor} = call!(Add, x1, x2)
-Base.:+(x1::T, x2::S) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
-Base.:+(x1::S, x2::T) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
+Base.:+(x1::T, x2::T) where {T <: CuTensor} = call!(Add, x1, x2) 
+Base.:+(::T, ::S) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
+Base.:+(::S, ::T) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
 
 
 Base.:-(x1::T, x2::T) where {T <: Scalar} = call!(Sub, x1, x2)
@@ -112,8 +118,8 @@ Base.:-(x1::T, x2::S) where {T <: Tensor, S <: AbstractArray} = call!(Sub, x1, T
 Base.:-(x1::S, x2::T) where {T <: Tensor, S <: AbstractArray} = call!(Sub, Tensor(x1), x2)
 
 Base.:-(x1::T, x2::T) where {T <: CuTensor} = call!(Sub, x1, x2)
-Base.:-(x1::T, x2::S) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
-Base.:-(x1::S, x2::T) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
+Base.:-(::T, ::S) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
+Base.:-(::S, ::T) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
 
 Base.:-(x::T) where {T <: Variable} = call!(Neg, x)
 
@@ -128,8 +134,8 @@ Base.:*(x1::T, x2::S) where {T <: Tensor, S <: AbstractArray} = call!(Mul, x1, T
 Base.:*(x1::S, x2::T) where {T <: Tensor, S <: AbstractArray} = call!(Mul, Tensor(x1), x2)
 
 Base.:*(x1::T, x2::T) where {T <: CuTensor} = call!(Mul, x1, x2)
-Base.:*(x1::T, x2::S) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
-Base.:*(x1::S, x2::T) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
+Base.:*(::T, ::S) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
+Base.:*(::S, ::T) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
 
 Base.:*(x1::T, x2::R) where {T <: Tensor, R <: Real} = call!(Mul, x1, Scalar(x2))
 Base.:*(x1::R, x2::T) where {T <: Tensor, R <: Real} = call!(Mul, Scalar(x1), x2)
@@ -158,22 +164,8 @@ Base.:/(x1::T, x2::R) where {T <: CuTensor, R <: Real} = call!(Div, x1, Scalar(x
 Base.:/(x1::R, x2::T) where {T <: CuTensor, R <: Real} = call!(Div, Scalar(x1), x2)
 
 
-function AutoDiff.call!(F::Type{Pow}, x::T, c::R) where {T<:Variable, R <: Real}
-    inputs = (x, )
-    y = x.values ^ c
-    gen = x.generation
-    gf = GradField(
-            inputs,
-            AutoDiff.out_to_tensor(y, gen),
-            gen
-        ) 
-    func = Pow(gf, c)
-    gf.output.creator = func
-    return gf.output
-end
+Base.:^(x1::T, x2::T) where {T <: Scalar} = call!(Pow, PowField(x2.values), x1)
+Base.:^(x1::T, x2::R) where {T <: Scalar, R <: Real} = call!(Pow, PowField(x2), x1)
+Base.:^(x1::R, x2::T) where {T <: Scalar, R <: Real} = call!(Pow, PowField(x2.values), Scalar(x1))
 
-
-Base.:^(x1::T, x2::T) where {T <: Scalar} = call!(Pow, x1, x2.values)
-Base.:^(x1::T, x2::R) where {T <: Scalar, R <: Real} = call!(Pow, x1, x2)
-Base.:^(x1::R, x2::T) where {T <: Scalar, R <: Real} = call!(Pow, Scalar(x1), x2.values)
 
