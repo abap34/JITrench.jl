@@ -1,5 +1,5 @@
 using .AutoDiff
-import .AutoDiff: forward, call!
+import .AutoDiff: forward, backward, call!
 import Base
 
 struct Sin <: UnaryOperator
