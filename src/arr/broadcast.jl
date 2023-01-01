@@ -6,7 +6,7 @@ mutable struct Broadcasting{F} <: DiffableFunction
     grad_field :: GradField
 end
 
-function call!(F::Type{Broadcasting{TF}}, x::Tensor) where TF <: UnaryOperator
+function call!(::Type{Broadcasting{TF}}, x::Tensor) where TF <: UnaryOperator
     inputs = (x, )
     y = forward.(TF, x.values)
     gen = x.generation
