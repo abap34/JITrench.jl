@@ -3,6 +3,7 @@ notifications:
   email: false
 julia:
   - 1.8
+  - nightly
 os:
   - linux
 arch:
@@ -16,7 +17,7 @@ jobs:
     - julia: nightly
   include:
     - stage: Documentation
-      julia: 1.8
+      julia: 1
       script: |
         julia --project=docs -e '
           using Pkg
@@ -28,3 +29,10 @@ jobs:
           doctest(JITrench)
           include("docs/make.jl")'
       after_success: skip
+after_success:
+  - |
+    julia -e '
+      using Pkg
+      Pkg.add("Coverage")
+      using Coverage
+      Codecov.submit(process_folder())'
