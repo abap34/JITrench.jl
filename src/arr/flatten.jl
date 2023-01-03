@@ -9,7 +9,7 @@ end
 
 struct Flatten{T} <: UnaryOperator
     grad_field :: GradField
-    additional_field :: ReshapeField{T, S}
+    additional_field :: FlattenField{T, S}
 end
 
 
