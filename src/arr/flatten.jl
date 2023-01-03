@@ -7,7 +7,7 @@ struct FlattenField{T <: Tuple} <: AdditionalField
 end
 
 
-struct Flatten{T} <: UnaryOperator
+struct Flatten{T, S} <: UnaryOperator
     grad_field :: GradField
     additional_field :: FlattenField{T, S}
 end
