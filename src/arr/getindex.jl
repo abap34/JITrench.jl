@@ -3,7 +3,7 @@ struct GetIndexField{T <: Tuple, S} <: AdditionalField
     index :: S
 end
 
-struct GetIndex{T, S} <: DiffableFunction
+struct GetIndex{T, S} <: UnaryOperator
     grad_field :: GradField
     additional_field :: GetIndexField{T, S}
 end
@@ -30,14 +30,15 @@ struct NBinaryMatrix <: UnaryOperator
 end
 
 function add_at!(A::T, index, val) where T <: AbstractArray
-    A[index] .+= val
+    A[index...] .+= val
 end
 
 function forward(::Type{NBinaryMatrix}, additional_field::NBinaryMatrixField, x::R) where R <: Real
     index = additional_field.index
     in_shape = additional_field.in_shape
     y = zeros(R, in_shape)
-    return add_at!(y, index, x)
+    add_at!(y, index, x)
+    return y
 end
 
 function backward(f::NBinaryMatrix, gx)
@@ -46,4 +47,16 @@ function backward(f::NBinaryMatrix, gx)
 end
 
 Base.getindex(x::T, ind...)  where T <: AbstractTensor = call!(GetIndex, GetIndexField(size(x), ind), x)
-nbinary_matrix(shape, index, gy) = call!(NBinaryMatrix, NBinaryMatrixField(index, shape), gy)
+nbinary_matrix(shape, index, gy::T) where T <: Variable = call!(NBinaryMatrix, NBinaryMatrixField(index, shape), gy)
+
+function nbinary_matrix(shape, index, gy::R) where R <: Real
+    y = zeros(shape)
+    add_at!(y, index, x)
+    return y
+end
+
+function nbinary_matrix(shape, index, x)
+    y = zeros(shape)
+    add_at!(y, index, x)
+    return y
+end
