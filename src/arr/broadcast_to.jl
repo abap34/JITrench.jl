@@ -28,7 +28,7 @@ function backward(f::BroadcastTo, gy)
     return gx
 end
 
-function broadcast_to(x::T, shape) where T <: AbstraactTensor
+function broadcast_to(x::T, shape) where T <: AbstractTensor
     if size(x.values) == shape
         return x
     else
