@@ -1,11 +1,15 @@
-mutable struct GetIndex <: DiffableFunction
-    ind
-    grad_field :: GradField
-    GetIndex(ind) = new(ind, GradField())
+struct GetIndexField{T} <: AdditionalField
+    index :: T
 end
 
-function forward(f::GetIndex, x)
-    return x[f.ind...]
+struct GetIndex{T} <: DiffableFunction
+    grad_field :: GradField
+    additional_field :: GetIndexField{T}
+end
+
+function forward(::Type{GetIndex}, additional_field::GetIndexField, x)
+    index = additional_field.index
+    return x[index...]
 end
 
 function backward(f::GetIndex, gy)
@@ -13,56 +17,30 @@ function backward(f::GetIndex, gy)
     return GetIndexGrad(f.ind, size(x))(gy)
 end
 
-mutable struct GetIndexGrad <: DiffableFunction
-    ind
-    in_shape
+struct NBinaryMatrixField{T, S <: Tuple} <: AdditionalField
+    index :: T
+    in_shape :: S
+end
+
+struct NBinaryMatrix <: UnaryOperator
     grad_field :: GradField
-    GetIndexGrad(ind, in_shape) = new(ind, in_shape, GradField())
+    additional_field :: NBinaryMatrixField
 end
 
-function add_at(arr::Vector, ind, val) 
-    arr[ind...] += val
-    return arr
+function add_at!(A::T, index, val) where T <: AbstractArray
+    A[index] .+= val
 end
 
-
-function add_at(arr::AbstractArray, ind, val) 
-    arr[ind...] .+= val
-    return arr
+function forward(::Type{NBinaryMatrix}, additional_field::NBinaryMatrixField, gy::R) where R <: Real
+    index = additional_field.index
+    in_shape = additional_field.in_shape
+    gx = zeros(R, in_shape)
+    return add_at!(gx, index, gy)
 end
 
-function forward(f::GetIndexGrad, gy)
-    gx = zeros(f.in_shape)
-    return add_at(gx, f.ind, gy)
+function backward(f::NBinaryMatrix, gx)
+    index = f.additional_field.index
+    return gx[index]
 end
 
-function backward(::GetIndexGrad, ggx)
-    return GetIndex(ind, size(ggx))(ggx)
-end
-
-"""
-    Base.getindex(x::Variable, ind...)
-return `x.values[ind...]` as `Variable`.
-
-# Examples
-```julia-repl
-julia> x = Variable(rand(2, 2))
-name: nothing 
-values: [0.7050007249265509 0.5075375401538957; 0.9953109600473362 0.8447135817368259]
-creator: User-Defined(nothing)
-
-julia> x[1, 2]
-name: nothing 
-values: 0.5075375401538957
-creator: JITrench.GetIndex
-
-julia> x[1, :]
-name: nothing 
-values: [0.7050007249265509, 0.5075375401538957]
-creator: JITrench.GetIndex
-```
-"""
-Base.getindex(x::Variable, ind...) = GetIndex(ind)(x)
-
-is_support(::typeof(Base.getindex)) = true
-get_jt_struct(::typeof(Base.getindex)) = GetIndex
+Base.getindex(x::T, ind...)  where T <: AbstractTensor = call!(GetIndex, GetIndexField(ind), x)
