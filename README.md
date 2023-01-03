@@ -38,12 +38,12 @@ julia> f′(π)
 ## Compute gradients for "Deep" functions, visualize computational graphs
 
 ```julia
-julia> x = JITrench.AutoDiff.Scalar(2.5, name="x")
+julia> x = AutoDiff.Scalar(2.5, name="x")
 name: x 
 values: 2.5
 creator: User-Defined(nothing)
 
-julia> y = JITrench.AutoDiff.Scalar(3.5, name="y")
+julia> y = AutoDiff.Scalar(3.5, name="y")
 name: y 
 values: 3.5
 creator: User-Defined(nothing)
@@ -73,7 +73,7 @@ julia> JITrench.plot_graph(z, to_file="example/visualize/goldstain.png")
 
 
 ```julia
-julia> A = JITrench.AutoDiff.Tensor([1 2; 3 4; 5 6])
+julia> A = AutoDiff.Tensor([1 2; 3 4; 5 6])
 name: nothing 
 values: [1 2; 3 4; 5 6]
 creator: User-Defined(nothing)
@@ -81,17 +81,17 @@ creator: User-Defined(nothing)
 julia> B = reshape(A, (2, 3))
 name: nothing 
 values: [1 5 4; 3 2 6]
-creator: JITrench.Reshape{Tuple{Int64, Int64}, Tuple{Int64, Int64}}
+creator: JITrench.ArrOperator.Reshape{Tuple{Int64, Int64}, Tuple{Int64, Int64}}
 
 julia> C = B[1, :]
 name: nothing 
 values: [1, 5, 4]
-creator: JITrench.GetIndex{Tuple{Int64, Int64}, Tuple{Int64, Colon}}
+creator: JITrench.ArrOperator.GetIndex{Tuple{Int64, Int64}, Tuple{Int64, Colon}}
 
 julia> y = sum(C)
 name: nothing 
 values: 10
-creator: JITrench.Sum
+creator: JITrench.ArrOperator.Sum
 
 julia> backward!(y)
 

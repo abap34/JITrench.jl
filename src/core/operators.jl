@@ -42,9 +42,6 @@ end
 @inline forward(::Type{Div}, x1, x2) = x1 / x2
 @inline forward(::Type{Pow}, pow_field::PowField, x1) = x1^(pow_field.c)
 
-const ScalarTypes = Union{Real, Scalar}
-const TensorTypes = Union{AbstractArray, Tensor, CuTensor}
-
 function backward(::Add, gy::T) where {T <: Union{ScalarTypes, TensorTypes}}
     return (gy, gy)
 end
