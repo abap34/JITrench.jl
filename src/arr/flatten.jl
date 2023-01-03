@@ -3,13 +3,13 @@ using .AutoDiff
 import .AutoDiff: forward, backward, call!
 
 struct FlattenField{T <: Tuple} <: AdditionalField
-    in_shape :: T
+    in_shape::T
 end
 
 
 struct Flatten{T} <: UnaryOperator
-    grad_field :: GradField
-    additional_field :: FlattenField{T}
+    grad_field::GradField
+    additional_field::FlattenField{T}
 end
 
 
@@ -23,4 +23,4 @@ function backward(f::Flatten, gy)
 end
 
 
-flatten(x::T) where T <: AbstractTensor = call!(Flatten, FlattenField(size(x)), x)
+flatten(x::T) where {T <: AbstractTensor} = call!(Flatten, FlattenField(size(x)), x)

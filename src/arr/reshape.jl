@@ -3,14 +3,14 @@ using .AutoDiff
 import .AutoDiff: forward, backward, call!
 
 struct ReshapeField{T <: Tuple, S <: Tuple} <: AdditionalField
-    in_shape :: T
-    out_shape :: S
+    in_shape::T
+    out_shape::S
 end
 
 
 struct Reshape{T, S} <: UnaryOperator
-    grad_field :: GradField
-    additional_field :: ReshapeField{T, S}
+    grad_field::GradField
+    additional_field::ReshapeField{T, S}
 end
 
 
@@ -23,7 +23,7 @@ function backward(f::Reshape, gy)
     return reshape(gy, in_shape)
 end
 
-function Base.reshape(x::T, out_shape) where T <: AbstractTensor
+function Base.reshape(x::T, out_shape) where {T <: AbstractTensor}
     in_shape = size(x)
     return call!(Reshape, ReshapeField(in_shape, out_shape), x)
 end

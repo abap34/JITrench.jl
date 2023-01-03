@@ -26,8 +26,20 @@ include("utils/plot.jl")
 include("utils/utils.jl")
 
 
-export Variable, DiffableFunction, backward!, parameters, cleargrad!, flatten, matmul, sum_to, sigmoid, mean_squared_error, linear, Model, Layer, SGD, @diff!
+export Variable,
+    DiffableFunction,
+    backward!,
+    parameters,
+    cleargrad!,
+    flatten,
+    matmul,
+    sum_to,
+    sigmoid,
+    mean_squared_error,
+    linear,
+    Model,
+    Layer,
+    SGD,
+    @diff!
 
 end
-
-

@@ -24,7 +24,7 @@ struct Div <: BinaryOperator
 end
 
 struct PowField{R <: Real} <: AdditionalField
-    c :: R
+    c::R
 end
 
 struct Pow{R} <: UnaryOperator
@@ -45,47 +45,47 @@ end
 const ScalarTypes = Union{Real, Scalar}
 const TensorTypes = Union{AbstractArray, Tensor, CuTensor}
 
-function backward(::Add, gy::T) where T <: Union{ScalarTypes, TensorTypes}
+function backward(::Add, gy::T) where {T <: Union{ScalarTypes, TensorTypes}}
     return (gy, gy)
 end
 
-function backward(::Sub, gy::T) where T <: Union{ScalarTypes, TensorTypes}
+function backward(::Sub, gy::T) where {T <: Union{ScalarTypes, TensorTypes}}
     return (gy, -gy)
 end
 
-function backward(::Neg, gy::T) where T <: Union{ScalarTypes, TensorTypes}
+function backward(::Neg, gy::T) where {T <: Union{ScalarTypes, TensorTypes}}
     return -gy
 end
 
-function backward(f::Mul, gy::R) where R <: ScalarTypes
+function backward(f::Mul, gy::R) where {R <: ScalarTypes}
     x1, x2 = f.grad_field.inputs
     return (x2 * gy, x1 * gy)
 end
 
-function backward(f::Mul, gy::T) where T <: TensorTypes
+function backward(f::Mul, gy::T) where {T <: TensorTypes}
     x1, x2 = f.grad_field.inputs
     @. return (x2 .* gy, x1 .* gy)
 end
 
-function backward(f::Div, gy::R) where R <: ScalarTypes
+function backward(f::Div, gy::R) where {R <: ScalarTypes}
     x1, x2 = f.grad_field.inputs
     return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy
 end
 
-function backward(f::Div, gy::T) where T <: TensorTypes
+function backward(f::Div, gy::T) where {T <: TensorTypes}
     x1, x2 = f.grad_field.inputs
     @. return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy
 end
 
 
-function backward(f::Pow, gy::R) where R <: ScalarTypes 
+function backward(f::Pow, gy::R) where {R <: ScalarTypes}
     x = f.grad_field.inputs[1]
     c = f.additional_field.c
     return (c * (x^(c - 1))) * gy
 end
 
 
-function backward(f::Pow, gy::T) where T <: TensorTypes
+function backward(f::Pow, gy::T) where {T <: TensorTypes}
     x = f.grad_field.inputs[1]
     c = f.additional_field.c
     @. return (c * (x^(c - 1))) * gy
@@ -101,12 +101,14 @@ function Base.:+(x1::T, x2::T) where {T <: Tensor}
     call!(Add, x1, x2)
 end
 
-Base.:+(x1::T, x2::S) where {T <: Tensor, S <: AbstractArray} = call!(Add, x1, Tensor(x2)) 
+Base.:+(x1::T, x2::S) where {T <: Tensor, S <: AbstractArray} = call!(Add, x1, Tensor(x2))
 Base.:+(x1::S, x2::T) where {T <: Tensor, S <: AbstractArray} = call!(Add, Tensor(x1), x2)
 
-Base.:+(x1::T, x2::T) where {T <: CuTensor} = call!(Add, x1, x2) 
-Base.:+(::T, ::S) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
-Base.:+(::S, ::T) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
+Base.:+(x1::T, x2::T) where {T <: CuTensor} = call!(Add, x1, x2)
+Base.:+(::T, ::S) where {T <: CuTensor, S <: AbstractArray} =
+    NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
+Base.:+(::S, ::T) where {T <: CuTensor, S <: AbstractArray} =
+    NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
 
 
 Base.:-(x1::T, x2::T) where {T <: Scalar} = call!(Sub, x1, x2)
@@ -118,8 +120,10 @@ Base.:-(x1::T, x2::S) where {T <: Tensor, S <: AbstractArray} = call!(Sub, x1, T
 Base.:-(x1::S, x2::T) where {T <: Tensor, S <: AbstractArray} = call!(Sub, Tensor(x1), x2)
 
 Base.:-(x1::T, x2::T) where {T <: CuTensor} = call!(Sub, x1, x2)
-Base.:-(::T, ::S) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
-Base.:-(::S, ::T) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
+Base.:-(::T, ::S) where {T <: CuTensor, S <: AbstractArray} =
+    NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
+Base.:-(::S, ::T) where {T <: CuTensor, S <: AbstractArray} =
+    NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
 
 Base.:-(x::T) where {T <: Variable} = call!(Neg, x)
 
@@ -134,8 +138,10 @@ Base.:*(x1::T, x2::S) where {T <: Tensor, S <: AbstractArray} = call!(Mul, x1, T
 Base.:*(x1::S, x2::T) where {T <: Tensor, S <: AbstractArray} = call!(Mul, Tensor(x1), x2)
 
 Base.:*(x1::T, x2::T) where {T <: CuTensor} = call!(Mul, x1, x2)
-Base.:*(::T, ::S) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
-Base.:*(::S, ::T) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
+Base.:*(::T, ::S) where {T <: CuTensor, S <: AbstractArray} =
+    NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
+Base.:*(::S, ::T) where {T <: CuTensor, S <: AbstractArray} =
+    NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
 
 Base.:*(x1::T, x2::R) where {T <: Tensor, R <: Real} = call!(Mul, x1, Scalar(x2))
 Base.:*(x1::R, x2::T) where {T <: Tensor, R <: Real} = call!(Mul, Scalar(x1), x2)
@@ -154,8 +160,10 @@ Base.:/(x1::T, x2::S) where {T <: Tensor, S <: AbstractArray} = call!(Div, x1, T
 Base.:/(x1::S, x2::T) where {T <: Tensor, S <: AbstractArray} = call!(Div, Tensor(x1), x2)
 
 Base.:/(x1::T, x2::T) where {T <: CuTensor} = call!(Div, x1, x2)
-Base.:/(::T, ::S) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
-Base.:/(::S, ::T) where {T <: CuTensor, S <: AbstractArray} = NotSameDeviceError(same_accelerator=false, same_gpu_idx=false)
+Base.:/(::T, ::S) where {T <: CuTensor, S <: AbstractArray} =
+    NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
+Base.:/(::S, ::T) where {T <: CuTensor, S <: AbstractArray} =
+    NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
 
 Base.:/(x1::T, x2::R) where {T <: Tensor, R <: Real} = call!(Div, x1, Scalar(x2))
 Base.:/(x1::R, x2::T) where {T <: Tensor, R <: Real} = call!(Div, Scalar(x1), x2)
@@ -166,6 +174,5 @@ Base.:/(x1::R, x2::T) where {T <: CuTensor, R <: Real} = call!(Div, Scalar(x1), 
 
 Base.:^(x1::T, x2::T) where {T <: Scalar} = call!(Pow, PowField(x2.values), x1)
 Base.:^(x1::T, x2::R) where {T <: Scalar, R <: Real} = call!(Pow, PowField(x2), x1)
-Base.:^(x1::R, x2::T) where {T <: Scalar, R <: Real} = call!(Pow, PowField(x2.values), Scalar(x1))
-
-
+Base.:^(x1::R, x2::T) where {T <: Scalar, R <: Real} =
+    call!(Pow, PowField(x2.values), Scalar(x1))

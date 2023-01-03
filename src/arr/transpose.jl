@@ -7,7 +7,7 @@ function forward(::Type{Transpose}, x)
 end
 
 function backward(::Transpose, gy)
-    return transpose(gy)  
+    return transpose(gy)
 end
 
-Base.transpose(x::T) where T <: AbstractTensor = call!(Transpose, x)
+Base.transpose(x::T) where {T <: AbstractTensor} = call!(Transpose, x)

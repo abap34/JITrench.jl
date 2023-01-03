@@ -1,6 +1,6 @@
 using DataStructures
 
-@inline get_values(x::T) where T <: Variable = x.values
+@inline get_values(x::T) where {T <: Variable} = x.values
 @inline get_values(x) = x
 
 
@@ -8,16 +8,16 @@ using DataStructures
 
 @inline ones_like(x::AbstractArray{R}) where {R <: Real} = ones(R, size(x))
 
-@inline ones_like(::Scalar{R}) where R <: Real = Scalar(one(R))
+@inline ones_like(::Scalar{R}) where {R <: Real} = Scalar(one(R))
 
 @inline ones_like(::Tensor) = Tensor(ones(eltype(x.values), size(x.values)))
 
-@inline function cleargrad!(x::T) where T <: Variable
+@inline function cleargrad!(x::T) where {T <: Variable}
     x.grad = nothing
 end
 
 @inline function as_tuple(x)
-    return (x, )
+    return (x,)
 end
 
 @inline function as_tuple(x::Tuple)

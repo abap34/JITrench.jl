@@ -1,25 +1,18 @@
 const tmp_dir = joinpath(expanduser("~"), ".JITrench")
 const dot_file_path = joinpath(tmp_dir, "tmp_graph.dot")
 
-colors = Dict(
-    "func" => "lightblue",
-    "var" => "orange",
-    "user_defined_var" => "orange"
-)
+colors = Dict("func" => "lightblue", "var" => "orange", "user_defined_var" => "orange")
 
-shapes = Dict(
-    "var" => "ellipse",
-    "user_defined_var" => "polygon, sides=8"
-)
+shapes = Dict("var" => "ellipse", "user_defined_var" => "polygon, sides=8")
 
 
 """
     PNGContainer
 A structure for handling images.
-You can display an image by using it as a return value of a cell or by explicitly `display(::PNGContainer)` in Jupyter.
+You can display an image by using it as a return value of a cell or by explicitly `display( :: PNGContainer)` in Jupyter.
 """
 struct PNGContainer
-    content
+    content::Any
 end
 
 function Base.show(io::IO, ::MIME"image/png", c::PNGContainer)
@@ -35,7 +28,7 @@ function _dot_var(var::Scalar)
         color = colors["var"]
         shape = shapes["var"]
     end
-    
+
     if var.name !== nothing
         return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name) : </b>$(var.values)>, color=\"$color\", style=filled]\n"
     else
@@ -50,8 +43,8 @@ function _dot_var(var::Tensor)
     else
         color = colors["var"]
         shape = shapes["var"]
-    end 
-    
+    end
+
     if var.name !== nothing
         return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name) : </b>$(typeof(var))>, color=\"$color\", style=filled]\n"
     else
@@ -99,7 +92,7 @@ end
 # plot tmp directory
 function plot_tmp_dir()
     extension = "png"
-    to_file = joinpath(tmp_dir, "graph." * extension)       
+    to_file = joinpath(tmp_dir, "graph." * extension)
     cmd = `dot $(dot_file_path) -T $(extension) -o $(to_file)`
     run(cmd)
     return to_file
@@ -107,7 +100,7 @@ end
 
 
 """
-    plot_graph(var::Variable; to_file="", title="")
+    plot_graph(var :: Variable; to_file="", title="")
 Draw a computational graph with y as the end. This requires the installation of graphviz.
 
 # Arguments
@@ -130,16 +123,16 @@ creator: JITrench.Add
 julia> JITrench.plot_graph(y, to_file="graph.png") 
 ```
 """
-function plot_graph(var::Variable; to_file="", title="")
+function plot_graph(var::Variable; to_file = "", title = "")
     dot_graph = get_dot_graph(var, title)
 
     # make tmp directory to contain .dot 
     (!(ispath(tmp_dir))) && (mkdir(tmp_dir))
-    
+
     open(dot_file_path, "w") do io
         write(io, dot_graph)
     end
-    
+
     # interactive plot
     if to_file == ""
         # plot tmp directory 
@@ -149,7 +142,7 @@ function plot_graph(var::Variable; to_file="", title="")
             PNGContainer(read(io))
         end
         return c
-    # save fig
+        # save fig
     else
         extension = split(to_file, ".")[end]
         cmd = `dot $(dot_file_path) -T $(extension) -o $(to_file)`

@@ -9,6 +9,19 @@ include("function_utils.jl")
 include("function.jl")
 include("propagation.jl")
 
-export DiffableFunction, BinaryOperator, UnaryOperator, GradField, AdditionalField, Variable, Scalar, AbstractTensor, Tensor, CuTensor, transport!, forward, backward, backward!
+export DiffableFunction,
+    BinaryOperator,
+    UnaryOperator,
+    GradField,
+    AdditionalField,
+    Variable,
+    Scalar,
+    AbstractTensor,
+    Tensor,
+    CuTensor,
+    transport!,
+    forward,
+    backward,
+    backward!
 
 end

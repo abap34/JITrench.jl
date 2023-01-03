@@ -1,10 +1,14 @@
 abstract type AdditionalField end
 
-struct GradField{T, S} 
-    inputs :: T
-    output :: S
+struct GradField{T, S}
+    inputs::T
+    output::S
     generation::Int
-    function GradField(inputs::T, output::S, generation::Int) where {T <: Tuple, S <: Variable}
+    function GradField(
+        inputs::T,
+        output::S,
+        generation::Int,
+    ) where {T <: Tuple, S <: Variable}
         new{T, S}(inputs, output, generation)
     end
 end
@@ -23,7 +27,6 @@ function Base.show(io::IO, ::MIME"text/plain", f::DiffableFunction)
 $(typeof(f))
     inputs: $(f.grad_field.inputs)
     output: $(f.grad_field.output)
-    generation: $(f.grad_field.generation)"""
+    generation: $(f.grad_field.generation)""",
     )
 end
-

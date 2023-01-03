@@ -1,7 +1,7 @@
 import LinearAlgebra
 
 struct MatMul <: BinaryOperator
-    grad_field :: GradField
+    grad_field::GradField
 end
 
 
