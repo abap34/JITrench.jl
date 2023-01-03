@@ -36,7 +36,7 @@ function _dot_var(var::Scalar)
     end
 end
 
-function _dot_var(var::Tensor)
+function _dot_var(var::AbstractTensor)
     if var.creator === nothing
         color = colors["user_defined_var"]
         shape = shapes["user_defined_var"]
@@ -48,13 +48,14 @@ function _dot_var(var::Tensor)
     if var.name !== nothing
         return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name) : </b>$(typeof(var))>, color=\"$color\", style=filled]\n"
     else
-        return "$(objectid(var)) [shape=$shape, label=\"$(typeof(var))\", color=\"$color\", style=filled]\n"
+        return "$(objectid(var)) [shape=$shape, label=\"Tensor$(size(var))\", color=\"$color\", style=filled]\n"
     end
 end
 
 function _dot_func(f::DiffableFunction)
     f_type = typeof(f)
-    txt = "$(objectid(f)) [label=\"$(f_type)\", color=\"$(colors["func"])\", style=filled, shape=box]\n"
+    f_name = split(split(repr(f_type), ".")[end], "{")[begin]
+    txt = "$(objectid(f)) [label=\"$(f_name)\", color=\"$(colors["func"])\", style=filled, shape=box]\n"
     for x in f.grad_field.inputs
         txt *= "$(objectid(x)) -> $(objectid(f))\n"
     end
