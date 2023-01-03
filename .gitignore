@@ -2,5 +2,5 @@
 /docs/build/
 dev/*
 docs/Manifest.toml
-
-
+/.benchmarkci
+/benchmark/*.json
