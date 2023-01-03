@@ -1,4 +1,4 @@
-abstract type AbstractGradField end
+abstract type AdditionalField end
 
 struct GradField{T, S} 
     inputs :: T
@@ -26,3 +26,4 @@ $(typeof(f))
     generation: $(f.grad_field.generation)"""
     )
 end
+
