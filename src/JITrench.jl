@@ -15,6 +15,6 @@ include("utils/out.jl")
 include("utils/plot.jl")
 include("utils/utils_macro.jl")
 
-export AutoDiff
+export AutoDiff, backward!
 
 end
