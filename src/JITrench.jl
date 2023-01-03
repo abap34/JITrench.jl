@@ -6,20 +6,18 @@ import Base
 include("core/autodiff/autodiff.jl")
 # end
 
+include("utils/error.jl")
+
 include("core/operators.jl")
 include("core/math_functions.jl")
 
-include("arr/broadcast.jl")
 include("arr/mapfunction.jl")
-include("utils/error.jl")
-
 include("arr/reshape.jl")
 include("arr/flatten.jl")
 include("arr/transpose.jl")
 include("arr/sum.jl")
 include("arr/sum_to.jl")
 include("arr/broadcast_to.jl")
-include("arr/broadcast.jl")
 include("arr/matmul.jl")
 include("arr/getindex.jl")
 
