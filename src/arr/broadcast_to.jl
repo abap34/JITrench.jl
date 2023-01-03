@@ -1,8 +1,11 @@
-function _broadcast_to(x::R, shape) where R <: Real
+using .AutoDiff
+import .AutoDiff: forward, backward, call!
+
+function broadcast_to(x::R, shape) where R <: Real
     return fill(x, shape)
 end
 
-function _broadcast_to(A::AbstractArray{R}, shape) where R <: Real
+function broadcast_to(A::AbstractArray{R}, shape) where R <: Real
     return zeros(R, shape) .+ A
 end
 
@@ -18,7 +21,7 @@ end
 
 function forward(::Type{BroadcastTo}, additional_field::BroadcastToField, x)
     shape = additional_field.out_shape
-    y = _broadcast_to(x, shape)
+    y = broadcast_to(x, shape)
     return y
 end
 
@@ -28,10 +31,10 @@ function backward(f::BroadcastTo, gy)
     return gx
 end
 
-function broadcast_to(x::T, shape) where T <: AbstractTensor
-    if size(x.values) == shape
+function broadcast_to(x::T, shape) where T <: Variable
+    if size(x) == shape
         return x
     else
-        return call!(BroadcastTo, BroadcastToField(size(x), shape), x)
+        return call!(BroadcastTo, BroadcastToField(size(x), shape), )
     end
 end
