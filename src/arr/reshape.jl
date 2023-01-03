@@ -1,20 +1,29 @@
 import Base
+using .AutoDiff
+import .AutoDiff: forward, backward, call!
 
-mutable struct Reshape <: DiffableFunction
-    grad_field::GradField
-    in_shape :: Tuple
-    out_shape :: Tuple
-    Reshape(in_shape, out_shape) = new(GradField(), in_shape, out_shape)
+struct ReshapeField{T <: Tuple, S <: Tuple} <: AdditionalField
+    in_shape::T
+    out_shape::S
 end
 
-function forward(f::Reshape, x)
-    f.in_shape = size(x)
-    return reshape(x, f.out_shape)
+
+struct Reshape{T, S} <: UnaryOperator
+    grad_field::GradField
+    additional_field::ReshapeField{T, S}
+end
+
+
+function forward(::Type{Reshape}, reshape_field::ReshapeField, x)
+    return reshape(x, reshape_field.out_shape)
 end
 
 function backward(f::Reshape, gy)
-    return reshape(gy, f.in_shape)
+    in_shape = f.additional_field.in_shape
+    return reshape(gy, in_shape)
 end
 
-Base.reshape(x::Variable, shape) = Reshape(size(x), shape)(x)
-is_support(::typeof(Base.reshape)) = true
+function Base.reshape(x::T, out_shape) where {T <: AbstractTensor}
+    in_shape = size(x)
+    return call!(Reshape, ReshapeField(in_shape, out_shape), x)
+end

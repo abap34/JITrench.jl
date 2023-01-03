@@ -1,67 +1,40 @@
-"""
-    _broadcast_to(A, shape)
-Apply broadcast to make `size(x.values)` as `shape`.
-# Examples
-```julia-repl
-julia> _broadcast_to([1, 2, 3], (3, 3))
-3×3 Matrix{Float64}:
- 1.0  1.0  1.0
- 2.0  2.0  2.0
- 3.0  3.0  3.0
+using .AutoDiff
+import .AutoDiff: forward, backward, call!
 
-julia> _broadcast_to(1, (2, 2))
-2×2 Matrix{Float64}:
- 1.0  1.0
- 1.0  1.0
-```
-"""
-function _broadcast_to(x::R, shape) where R <: Real
+function broadcast_to(x::R, shape) where {R <: Real}
     return fill(x, shape)
 end
 
-
-function _broadcast_to(A::AbstractArray{R}, shape) where R <: Real
+function broadcast_to(A::AbstractArray{R}, shape) where {R <: Real}
     return zeros(R, shape) .+ A
 end
-mutable struct BroadcastTo <: DiffableFunction
-    grad_field :: GradField
-    shape
-    x_shape
-    BroadcastTo(shape, x_shape) = new(GradField(), shape, x_shape)
+
+struct BroadcastToField{T <: Tuple, S <: Tuple} <: AdditionalField
+    in_shape::T
+    out_shape::S
 end
 
-function forward(f::BroadcastTo, x)
-    y = _broadcast_to(x, f.shape)
+struct BroadcastTo{T, S} <: UnaryOperator
+    grad_field::GradField
+    additional_field::BroadcastToField{T, S}
+end
+
+function forward(::Type{BroadcastTo}, additional_field::BroadcastToField, x)
+    shape = additional_field.out_shape
+    y = broadcast_to(x, shape)
     return y
 end
 
 function backward(f::BroadcastTo, gy)
-    gx = sum_to(gy, f.x_shape)   
+    in_shape = f.additional_field.in_shape
+    gx = sum_to(gy, in_shape)
     return gx
 end
 
-"""
-    broadcast_to(x::Variable, shape)
-
-Apply broadcast to make `size(x.values)` as `shape`.　
-
-# Examples
-```julia-repl
-julia> x = Variable([1, 2, 3])
-name: nothing 
-values: [1, 2, 3]
-creator: User-Defined(nothing)
-
-julia> JITrench.broadcast_to(x, (3, 2))
-name: nothing 
-values: [1.0 1.0; 2.0 2.0; 3.0 3.0]
-creator: JITrench.BroadcastTo
-```
-"""
-function broadcast_to(x::Variable, shape)
-    if size(x.values) == shape
+function broadcast_to(x::T, shape) where {T <: Variable}
+    if size(x) == shape
         return x
     else
-        return BroadcastTo(shape, size(x.values))(x)
+        return call!(BroadcastTo, BroadcastToField(size(x), shape))
     end
 end

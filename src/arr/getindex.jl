@@ -1,68 +1,68 @@
-mutable struct GetIndex <: DiffableFunction
-    ind
-    grad_field :: GradField
-    GetIndex(ind) = new(ind, GradField())
+struct GetIndexField{T <: Tuple, S} <: AdditionalField
+    in_shape::T
+    index::S
 end
 
-function forward(f::GetIndex, x)
-    return x[f.ind...]
+struct GetIndex{T, S} <: UnaryOperator
+    grad_field::GradField
+    additional_field::GetIndexField{T, S}
+end
+
+function forward(::Type{GetIndex}, additional_field::GetIndexField, x)
+    index = additional_field.index
+    return x[index...]
 end
 
 function backward(f::GetIndex, gy)
-    x = f.grad_field.inputs[1]
-    return GetIndexGrad(f.ind, size(x))(gy)
+    index = f.additional_field.index
+    in_shape = f.additional_field.in_shape
+    return nbinary_matrix(in_shape, index, gy)
 end
 
-mutable struct GetIndexGrad <: DiffableFunction
-    ind
-    in_shape
-    grad_field :: GradField
-    GetIndexGrad(ind, in_shape) = new(ind, in_shape, GradField())
+struct NBinaryMatrixField{T, S <: Tuple} <: AdditionalField
+    index::T
+    in_shape::S
 end
 
-function add_at(arr::Vector, ind, val) 
-    arr[ind...] += val
-    return arr
+struct NBinaryMatrix <: UnaryOperator
+    grad_field::GradField
+    additional_field::NBinaryMatrixField
 end
 
-
-function add_at(arr::AbstractArray, ind, val) 
-    arr[ind...] .+= val
-    return arr
+function add_at!(A::T, index, val) where {T <: AbstractArray}
+    A[index...] .+= val
 end
 
-function forward(f::GetIndexGrad, gy)
-    gx = zeros(f.in_shape)
-    return add_at(gx, f.ind, gy)
+function forward(
+    ::Type{NBinaryMatrix},
+    additional_field::NBinaryMatrixField,
+    x::R,
+) where {R <: Real}
+    index = additional_field.index
+    in_shape = additional_field.in_shape
+    y = zeros(R, in_shape)
+    add_at!(y, index, x)
+    return y
 end
 
-function backward(::GetIndexGrad, ggx)
-    return GetIndex(ind, size(ggx))(ggx)
+function backward(f::NBinaryMatrix, gx)
+    index = f.additional_field.index
+    return gx[index]
 end
 
-"""
-    Base.getindex(x::Variable, ind...)
-return `x.values[ind...]` as `Variable`.
+Base.getindex(x::T, ind...) where {T <: AbstractTensor} =
+    call!(GetIndex, GetIndexField(size(x), ind), x)
+nbinary_matrix(shape, index, gy::T) where {T <: Variable} =
+    call!(NBinaryMatrix, NBinaryMatrixField(index, shape), gy)
 
-# Examples
-```julia-repl
-julia> x = Variable(rand(2, 2))
-name: nothing 
-values: [0.7050007249265509 0.5075375401538957; 0.9953109600473362 0.8447135817368259]
-creator: User-Defined(nothing)
+function nbinary_matrix(shape, index, gy::R) where {R <: Real}
+    y = zeros(shape)
+    add_at!(y, index, x)
+    return y
+end
 
-julia> x[1, 2]
-name: nothing 
-values: 0.5075375401538957
-creator: JITrench.GetIndex
-
-julia> x[1, :]
-name: nothing 
-values: [0.7050007249265509, 0.5075375401538957]
-creator: JITrench.GetIndex
-```
-"""
-Base.getindex(x::Variable, ind...) = GetIndex(ind)(x)
-
-is_support(::typeof(Base.getindex)) = true
-get_jt_struct(::typeof(Base.getindex)) = GetIndex
+function nbinary_matrix(shape, index, x)
+    y = zeros(shape)
+    add_at!(y, index, x)
+    return y
+end
