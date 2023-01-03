@@ -201,8 +201,8 @@ function calculate_grad!(f::BinaryOperator, seen_set::Set{DiffableFunction}, que
         set_grad!(x1, gx1)
         set_grad!(x2, gx2)
     else
-        set_grad!(x1, gx1, no_Zgrad=true)
-        set_grad!(x2, gx2, no_Zgrad=true)
+        set_grad!(x1, gx1, nograd=true)
+        set_grad!(x2, gx2, nograd=true)
     end
     f1 = x1.creator
     f2 = x2.creator
@@ -222,7 +222,7 @@ function calculate_grad!(f::UnaryOperator, seen_set::Set{DiffableFunction}, que:
     if create_graph
         set_grad!(x, gx)
     else
-        set_grad!(x, gx, no_Zgrad=true)
+        set_grad!(x, gx, nograd=true)
     end
     f_c = x.creator
     update_que!(f_c, seen_set, que)
