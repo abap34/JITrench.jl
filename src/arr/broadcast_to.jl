@@ -1,6 +1,3 @@
-using .AutoDiff
-import .AutoDiff: forward, backward, call!
-
 function broadcast_to(x::R, shape) where {R <: Real}
     return fill(x, shape)
 end

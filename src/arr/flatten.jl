@@ -1,7 +1,3 @@
-import Base
-using .AutoDiff
-import .AutoDiff: forward, backward, call!
-
 struct FlattenField{T <: Tuple} <: AdditionalField
     in_shape::T
 end

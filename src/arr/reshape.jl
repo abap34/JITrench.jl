@@ -1,7 +1,3 @@
-import Base
-using .AutoDiff
-import .AutoDiff: forward, backward, call!
-
 struct ReshapeField{T <: Tuple, S <: Tuple} <: AdditionalField
     in_shape::T
     out_shape::S
