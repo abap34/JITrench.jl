@@ -1,0 +1,3 @@
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+JITrench = "573e55e6-eb53-4bcf-a884-6670806246ed"
