@@ -1,5 +1,14 @@
 using .AutoDiff
 
+struct NotSameShapeError <: Exception
+    shapes
+end
+
+Base.showerror(io::IO, e::NotSameShapeError) = print(io, 
+"Arguments must be same shape, Arguments shaps are $(shape).",
+)
+
+check_sameshape(args...) = allequal(size.(args)) ? nothing : throw(NotSameShapeError(size.(args)))
 struct NotImplemetedError <: Exception
     msg::String
 end
