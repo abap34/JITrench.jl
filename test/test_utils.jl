@@ -1,8 +1,8 @@
-function numerical_grad(f::Function, x::Real; dx=1e-8) 
+function numerical_grad(f::Function, x::Real; dx=1e-7) 
     return (f(x+dx) - f(x-dx)) / 2dx
 end
 
-function numerical_grad(f::Function, x1::Real, x2::Real; dx=1e-8) 
+function numerical_grad(f::Function, x1::Real, x2::Real; dx=1e-7) 
     gx1 = (f(x1+dx, x2) - f(x1-dx, x2)) / 2dx
     gx2 = (f(x1, x2+dx) - f(x1, x2-dx)) / 2dx
     return gx1, gx2
