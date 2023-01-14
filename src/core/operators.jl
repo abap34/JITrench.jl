@@ -42,58 +42,58 @@ end
 @inline forward(::Type{Div}, x1, x2) = x1 / x2
 @inline forward(::Type{Pow}, pow_field::PowField, x1) = x1^(pow_field.c)
 
-function backward(::Add, gy::T) where {T <: Union{ScalarTypes, TensorTypes}}
+function backward(::Add, gy::Union{ScalarTypes, TensorTypes})  
     return (gy, gy)
 end
 
-function backward(::Sub, gy::T) where {T <: Union{ScalarTypes, TensorTypes}}
+function backward(::Sub, gy::Union{ScalarTypes, TensorTypes})  
     return (gy, -gy)
 end
 
-function backward(::Neg, gy::T) where {T <: Union{ScalarTypes, TensorTypes}}
+function backward(::Neg, gy::Union{ScalarTypes, TensorTypes})  
     return -gy
 end
 
-function backward(f::Mul, gy::R) where {R <: ScalarTypes}
+function backward(f::Mul, gy::ScalarTypes)
     x1, x2 = f.grad_field.inputs
     return (x2 * gy, x1 * gy)
 end
 
-function backward(f::Mul, gy::T) where {T <: TensorTypes}
+function backward(f::Mul, gy::TensorTypes) 
     x1, x2 = f.grad_field.inputs
     @. return (x2 .* gy, x1 .* gy)
 end
 
-function backward(f::Div, gy::R) where {R <: ScalarTypes}
+function backward(f::Div, gy::ScalarTypes)
     x1, x2 = f.grad_field.inputs
     return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy
 end
 
-function backward(f::Div, gy::T) where {T <: TensorTypes}
+function backward(f::Div, gy::TensorTypes) 
     x1, x2 = f.grad_field.inputs
     @. return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy
 end
 
 
-function backward(f::Pow, gy::R) where {R <: ScalarTypes}
+function backward(f::Pow, gy::ScalarTypes)
     x = f.grad_field.inputs[1]
     c = f.additional_field.c
     return (c * (x^(c - 1))) * gy
 end
 
 
-function backward(f::Pow, gy::T) where {T <: TensorTypes}
+function backward(f::Pow, gy::TensorTypes) 
     x = f.grad_field.inputs[1]
     c = f.additional_field.c
     @. return (c * (x^(c - 1))) * gy
 end
 
 
-Base.:+(x1::T, x2::T) where {T <: Scalar} = call!(Add, x1, x2)
-Base.:+(x1::T, x2::R) where {T <: Scalar, R <: Real} = call!(Add, x1, Scalar(x2))
-Base.:+(x1::R, x2::T) where {T <: Scalar, R <: Real} = call!(Add, Scalar(x1), x2)
+Base.:+(x1::Scalar, x2::Scalar) = call!(Add, x1, x2)
+Base.:+(x1::Scalar, x2::Real)   = call!(Add, x1, Scalar(x2))
+Base.:+(x1::Real, x2::Scalar)   = call!(Add, Scalar(x1), x2)
 
-function Base.:+(x1::T, x2::T) where {T <: Tensor}
+function Base.:+(x1::Tensor, x2::Tensor)
     check_sameshape(x1, x2)
     call!(Add, x1, x2)
 end

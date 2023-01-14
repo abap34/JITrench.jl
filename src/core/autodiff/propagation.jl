@@ -10,12 +10,12 @@ function backward(args...)
 end
 
 function out_to_tensor(
-    y::T,
+    y::Real,
     generation::Int;
     creator = nothing,
     grad = nothing,
     req_broadcast = false,
-) where {T <: Real}
+) 
     return Scalar(
         y,
         creator = creator,
@@ -26,13 +26,12 @@ function out_to_tensor(
 end
 
 function out_to_tensor(
-    y::T,
+    y::AbstractArray,
     generation::Int;
     creator = nothing,
     grad = nothing,
     req_broadcast = false,
-) where {T <: AbstractArray}
-    return Tensor(
+)   return Tensor(
         y,
         creator = creator,
         grad = grad,
@@ -42,14 +41,13 @@ function out_to_tensor(
 end
 
 function out_to_tensor(
-    y::T,
+    y::CuArray,
     generation::Int,
     device_idx::Int;
     creator = nothing,
     grad = nothing,
     req_broadcast = false,
-) where {T <: CuArray}
-    return CuTensor(
+) return CuTensor(
         y,
         creator = creator,
         grad = grad,
@@ -107,10 +105,10 @@ end
 
 function call!(
     F::Type{<:BinaryOperator},
-    x1::T,
-    x2::S;
+    x1::Variable,
+    x2::Variable;
     nograd = false,
-) where {T <: Variable, S <: Variable}
+) 
     inputs = (x1, x2)
     y = forward(F, x1.values, x2.values)
     (nograd) && (return y)
@@ -123,11 +121,10 @@ end
 
 function call!(
     F::Type{<:BinaryOperator},
-    x1::T,
-    x2::T;
+    x1::CuTensor,
+    x2::CuTensor;
     nograd = false,
-) where {T <: CuTensor}
-    device_idx = check_same_device(x1.device, x2.device)
+) device_idx = check_same_device(x1.device, x2.device)
     inputs = (x1, x2)
     y = forward(F, x1.values, x2.values)
     (nograd) && (return y)
@@ -140,11 +137,11 @@ end
 
 function call!(
     F::Type{<:UnaryOperator},
-    additional_field::A,
-    x::T,
+    additional_field::AdditionalField,
+    x::Variable,
     nograd = false,
-) where {A <: AdditionalField, T <: Variable}
-    if x.req_broadcast
+) 
+if x.req_broadcast
         return call!(Broadcasting{F}, additional_field, x)
     end
     inputs = (x,)
@@ -154,29 +151,13 @@ function call!(
     return func.grad_field.output
 end
 
-
 function call!(
     F::Type{<:BinaryOperator},
-    additional_field::A,
-    x1::T,
-    x2::T;
+    additional_field::AdditionalField,
+    x1::Variable,
+    x2::Variable;
     nograd = false,
-) where {A <: AdditionalField, T <: Variable}
-    inputs = (x1, x2)
-    y = forward(F, additional_field, x1.values, x2.values)
-    (nograd) && (return y)
-    gen = min(x1.generation, x2.generation)
-    func = make_func(F, additional_field, y, inputs, gen)
-    return func.grad_field.output
-end
-
-function call!(
-    F::Type{<:BinaryOperator},
-    additional_field::A,
-    x1::T,
-    x2::S;
-    nograd = false,
-) where {A <: AdditionalField, T <: Variable, S <: Variable}
+) 
     inputs = (x1, x2)
     y = forward(F, additional_field, x1.values, x2.values)
     (nograd) && (return y)
@@ -188,11 +169,11 @@ end
 
 function call!(
     F::Type{<:BinaryOperator},
-    additional_field::A,
-    x1::T,
-    x2::T;
+    additional_field::AdditionalField,
+    x1::CuTensor,
+    x2::CuTensor;
     nograd = false,
-) where {A <: AdditionalField, T <: CuTensor}
+)
     device_idx = check_same_device(x1.device, x2.device)
     inputs = (x1, x2)
     y = forward(F, additional_field, x1.values, x2.values)
@@ -207,25 +188,25 @@ end
 @inline ones_like(x::CuTensor) =
     CuTensor(ones(eltype(x.values), size(x.values)), device_idx = x.device.idx)
 
-@inline get_gy(f::F) where {F <: DiffableFunction} = f.grad_field.output.grad
+@inline get_gy(f::DiffableFunction) = f.grad_field.output.grad
 
-@inline function set_grad!(x::T, gx::S) where {T <: Variable, S}
+@inline function set_grad!(x::Variable, gx) 
     set_grad!(x, x.grad, gx)
 end
 
-@inline function set_grad!(x::T, ::Nothing, gx::S) where {T <: Variable, S}
+@inline function set_grad!(x::Variable, ::Nothing, gx) 
     x.grad = gx
 end
 
-@inline function set_grad!(x::T1, ::T2, gx::S) where {T1 <: Variable, T2, S}
+@inline function set_grad!(x::Variable, _, gx)
     x.grad = x.grad + gx
 end
 
 @inline function set_grad!(
-    x::T,
-    gx::S;
+    x::Variable,
+    gx::Union{Real, AbstractArray};
     nograd::Bool,
-) where {T <: Variable, S <: Union{Real, AbstractArray}}
+) 
     if nograd
         set_grad!(x, x.grad, gx)
     end
@@ -239,10 +220,10 @@ end
 end
 
 @inline function update_que!(
-    f::F,
+    f::DiffableFunction,
     seen_set::Set{DiffableFunction},
     pq::PriorityQueue{DiffableFunction, Int},
-) where {F <: DiffableFunction}
+) 
     if !(f in seen_set)
         push!(seen_set, f)
         DataStructures.enqueue!(pq, f, f.grad_field.generation)
