@@ -1,3 +1,4 @@
+import ..AutoDiff: broadcast_to
 struct SumField{T <: Tuple} <: AdditionalField
     in_shape::T
 end
