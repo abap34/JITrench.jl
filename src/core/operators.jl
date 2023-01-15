@@ -66,12 +66,12 @@ end
 
 function backward(f::Div, gy::ScalarTypes)
     x1, x2 = f.grad_field.inputs
-    return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy
+    return inv(x2) * gy, (-x1 / (x2 * x2)) * gy
 end
 
 function backward(f::Div, gy::TensorTypes) 
     x1, x2 = f.grad_field.inputs
-    @. return (1 / x2) * gy, (-x1 / (x2 * x2)) * gy
+    @. return inv(x2) * gy, (-x1 / (x2 * x2)) * gy
 end
 
 
