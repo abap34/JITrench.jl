@@ -63,6 +63,16 @@ function _dot_func(f::DiffableFunction)
     return txt
 end
 
+function _dot_func(f::AutoDiff.BroadcastWrapper)
+    f_type = typeof(f)
+    f_name = split(split(repr(f_type), ".")[end], "{")[begin]
+    txt = "$(objectid(f)) [label=\"$(f_name)\", color=\"$(colors["func"])\", style=filled, shape=box]\n"
+    for x in f.wrapped_func.grad_field.inputs
+        txt *= "$(objectid(x)) -> $(objectid(f))\n"
+    end
+    txt *= "$(objectid(f)) -> $(objectid(f.wrapped_func.grad_field.output))\n"
+    return txt
+end
 
 function get_dot_graph(var, title)
     txt = ""
@@ -73,11 +83,22 @@ function get_dot_graph(var, title)
     while !(isempty(funcs))
         f = pop!(funcs)
         txt *= _dot_func(f)
-        for x in f.grad_field.inputs
-            txt *= _dot_var(x)
-            if x.creator !== nothing && (!(x.creator in seen_set))
-                push!(seen_set, x.creator)
-                push!(funcs, x.creator)
+        # TODO: avoid conditional branching by type
+        if f isa AutoDiff.BroadcastWrapper
+            for x in f.wrapped_func.grad_field.inputs
+                txt *= _dot_var(x)
+                if x.creator !== nothing && (!(x.creator in seen_set))
+                    push!(seen_set, x.creator)
+                    push!(funcs, x.creator)
+                end
+            end
+        else
+            for x in f.grad_field.inputs
+                txt *= _dot_var(x)
+                if x.creator !== nothing && (!(x.creator in seen_set))
+                    push!(seen_set, x.creator)
+                    push!(funcs, x.creator)
+                end
             end
         end
     end
