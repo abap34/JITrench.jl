@@ -213,7 +213,7 @@ end
 end
 
 
-@inline function set_grad!(x::T, gx::S; nograd::Bool) where {T <: Variable, S <: Variable}
+@inline function set_grad!(x::T, gx::S; nograd=true::Bool) where {T <: Variable, S <: Variable}
     if nograd
         set_grad!(x, x.grad, gx.values)
     end
@@ -257,7 +257,7 @@ function backward!(y::Scalar; retain_grad = false, create_graph = false)
             f,
             seen_set,
             que,
-            retain_grad = retain_grad;
+            retain_grad = retain_grad,
             create_graph = create_graph,
         )
     end
