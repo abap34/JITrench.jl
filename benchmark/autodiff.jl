@@ -19,7 +19,8 @@ unary_scalar_functions = Dict(
     "log" => log,
     "exp" => exp,
     "square" => (x -> x^2),
-    "sqrt" => sqrt
+    "sqrt" => sqrt,
+    "inv" => inv
 )
 
 SUITE["AutoDiff"]["simple_call"] = BenchmarkGroup()

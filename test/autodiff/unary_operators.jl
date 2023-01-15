@@ -7,6 +7,7 @@ unary_scalar_functions = Dict(
     "exp" => exp, 
     "square" => (x -> x^2),
     "sqrt" => sqrt,
+    "inv" => inv
 )
 
 
