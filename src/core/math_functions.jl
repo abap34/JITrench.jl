@@ -48,9 +48,19 @@ function backward(f::Sin, gy::ScalarTypes)
     return cos(x) * gy
 end
 
+function backward(f::Sin, gy::TensorTypes)
+    x = f.grad_field.inputs[1]
+    @. return cos(x) * gy
+end
+
 function backward(f::Cos, gy::ScalarTypes)
     x = f.grad_field.inputs[1]
     return -sin(x) * gy
+end
+
+function backward(f::Cos, gy::TensorTypes)
+    x = f.grad_field.inputs[1]
+    @. return -sin(x) * gy
 end
 
 function backward(f::Tan, gy::ScalarTypes)
@@ -58,9 +68,20 @@ function backward(f::Tan, gy::ScalarTypes)
     return inv(cos(x)^2) * gy
 end
 
+function backward(f::Tan, gy::TensorTypes)
+    x = f.grad_field.inputs[1]
+    @. return inv(cos(x)^2) * gy
+end
+
+
 function backward(f::Log, gy::ScalarTypes)
     x = f.grad_field.inputs[1]
     return gy / x
+end
+
+function backward(f::Log, gy::TensorTypes)
+    x = f.grad_field.inputs[1]
+    @. return gy / x
 end
 
 
@@ -69,19 +90,40 @@ function backward(f::Exp, gy::ScalarTypes)
     return exp(x) * gy
 end
 
+function backward(f::Exp, gy::TensorTypes)
+    x = f.grad_field.inputs[1]
+    @. return exp(x) * gy
+end
+
 function backward(f::Square, gy::ScalarTypes)
     x = f.grad_field.inputs[1]
     return 2x * gy
 end
+
+function backward(f::Square, gy::TensorTypes)
+    x = f.grad_field.inputs[1]
+    @. return 2x * gy
+end
+
 
 function backward(f::Sqrt, gy::ScalarTypes)
     x = f.grad_field.inputs[1]
     return inv(2*sqrt(x))
 end
 
+function backward(f::Sqrt, gy::TensorTypes)
+    x = f.grad_field.inputs[1]
+    @. return inv(2*sqrt(x))
+end
+
 function backward(f::Inv, gy::ScalarTypes)
     x = f.grad_field.inputs[1]
     return -1/x^2
+end
+
+function backward(f::Inv, gy::TensorTypes)
+    x = f.grad_field.inputs[1]
+    @. return -1/x^2
 end
 
 Base.sin(x::Scalar) = call!(Sin, x)
