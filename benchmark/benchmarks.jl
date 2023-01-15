@@ -1,6 +1,10 @@
 using BenchmarkTools
 using JITrench
 
+using Random
+Random.seed!(34)
+
+
 SUITE = BenchmarkGroup()
-x = AutoDiff.Tensor(rand(10000))
-SUITE["sum"] = @benchmarkable sum(x)
+
+include("autodiff.jl")
