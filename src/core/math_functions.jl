@@ -26,12 +26,18 @@ struct Square <: UnaryOperator
     grad_field::GradField
 end
 
+struct Sqrt <: UnaryOperator
+    grad_field::GradField
+end
+
 @inline forward(::Type{Sin}, x) = sin(x)
 @inline forward(::Type{Cos}, x) = cos(x)
 @inline forward(::Type{Tan}, x) = tan(x)
 @inline forward(::Type{Log}, x) = log(x)
 @inline forward(::Type{Exp}, x) = exp(x)
 @inline forward(::Type{Square}, x) = x^2
+@inline forward(::Type{Sqrt}, x) = sqrt(x)
+
 
 function backward(f::Sin, gy::ScalarTypes)
     x = f.grad_field.inputs[1]
@@ -64,12 +70,17 @@ function backward(f::Square, gy::ScalarTypes)
     return 2x * gy
 end
 
+function backward(f::Sqrt, gy::ScalarTypes)
+    x = f.grad_field.inputs[1]
+    return 1/(2*sqrt(x))
+end
 
 Base.sin(x::Scalar) = call!(Sin, x)
 Base.cos(x::Scalar) = call!(Cos, x)
 Base.tan(x::Scalar) = call!(Tan, x)
 Base.log(x::Scalar) = call!(Log, x)
 Base.exp(x::Scalar) = call!(Exp, x)
+Base.sqrt(x::Scalar) = call!(Sqrt, x)
 
 function Base.sin(x::AbstractTensor)
     check_broadcastable(x)
@@ -94,6 +105,11 @@ end
 function Base.exp(x::AbstractTensor)
     check_broadcastable(x)
     call!(Exp, x)
+end
+
+function Base.sqrt(x::AbstractTensor)
+    check_broadcastable(x)
+    call!(Sqrt, x)
 end
 
 
