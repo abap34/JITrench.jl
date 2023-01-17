@@ -51,7 +51,7 @@ end
 struct BroadcastCallError <: Exception end
 
 Base.showerror(io::IO, e::BroadcastCallError) =
-    print(io, "Please call this function with `req_broadcast")
+    print(io, "Please call this function with `req_broadcast`")
 
 function check_broadcastable(x::T) where {T <: Variable}
     if !(x.req_broadcast)
