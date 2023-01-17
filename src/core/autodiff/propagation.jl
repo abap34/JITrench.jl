@@ -196,34 +196,14 @@ end
 
 @inline get_gy(f::DiffableFunction) = f.grad_field.output.grad
 
-@inline function set_grad!(x::Variable, gx) 
-    set_grad!(x, x.grad, gx)
-end
-
-@inline function set_grad!(x::Variable, ::Nothing, gx) 
-    x.grad = gx
-end
-
-@inline function set_grad!(x::Variable, _, gx)
-    x.grad = x.grad + gx
-end
-
-@inline function set_grad!(
-    x::Variable,
-    gx::Union{Real, AbstractArray};
-    nograd::Bool,
-) 
-    if nograd
-        set_grad!(x, x.grad, gx)
+function set_grad!(x::Variable, gx)
+    if x.grad isa Nothing
+        x.grad = gx
+    else
+        x.grad = x.grad + gx
     end
 end
 
-
-@inline function set_grad!(x::T, gx::S; nograd=true::Bool) where {T <: Variable, S <: Variable}
-    if nograd
-        set_grad!(x, x.grad, gx.values)
-    end
-end
 
 @inline function update_que!(
     f::DiffableFunction,
@@ -267,13 +247,8 @@ function calculate_grad!(
     gy = get_gy(f)
     gx1, gx2 = backward(f, gy)
     x1, x2 = f.grad_field.inputs
-    if create_graph
-        set_grad!(x1, gx1)
-        set_grad!(x2, gx2)
-    else
-        set_grad!(x1, gx1, nograd = true)
-        set_grad!(x2, gx2, nograd = true)
-    end
+    set_grad!(x1, gx1)
+    set_grad!(x2, gx2)
     f1 = x1.creator
     f2 = x2.creator
     update_que!(f1, seen_set, que)
@@ -295,11 +270,7 @@ function calculate_grad!(
     gy = get_gy(f)
     gx = backward(f, gy)
     x = f.grad_field.inputs[1]
-    if create_graph
-        set_grad!(x, gx)
-    else
-        set_grad!(x, gx, nograd = true)
-    end
+    set_grad!(x, gx)
     f_c = x.creator
     update_que!(f_c, seen_set, que)
     if !(retain_grad)
@@ -426,21 +397,11 @@ function calculate_grad!(
     if size(x1) != size(x2)
         _gx1 = sum_to(gx1, size(x1))
         _gx2 = sum_to(gx2, size(x2))
-        if create_graph
-            set_grad!(x1, _gx1)
-            set_grad!(x2, _gx2)
-        else
-            set_grad!(x1, _gx1, nograd = true)
-            set_grad!(x2, _gx2, nograd = true)
-        end
+        set_grad!(x1, _gx1)
+        set_grad!(x2, _gx2)
     else
-        if create_graph
-            set_grad!(x1, gx1)
-            set_grad!(x2, gx2)
-        else
-            set_grad!(x1, gx1, nograd = true)
-            set_grad!(x2, gx2, nograd = true)
-        end
+        set_grad!(x1, gx1, nograd = true)
+        set_grad!(x2, gx2, nograd = true)
     end
     f1 = x1.creator
     f2 = x2.creator
@@ -463,11 +424,7 @@ function calculate_grad!(
     gy = get_gy(wrapper.wrapped_func)
     gx = backward(wrapper.wrapped_func, gy)
     x = wrapper.wrapped_func.grad_field.inputs[1]
-    if create_graph
-        set_grad!(x, gx)
-    else
-        set_grad!(x, gx, nograd = true)
-    end
+    set_grad!(x, gx)
     f_c = x.creator
     update_que!(f_c, seen_set, que)
     if !(retain_grad)
