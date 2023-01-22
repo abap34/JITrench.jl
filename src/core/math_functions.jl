@@ -108,22 +108,22 @@ end
 
 function backward(f::Sqrt, gy::ScalarTypes)
     x = f.grad_field.inputs[1]
-    return inv(2*sqrt(x))
+    return inv(2*sqrt(x)) * gy
 end
 
 function backward(f::Sqrt, gy::TensorTypes)
     x = f.grad_field.inputs[1]
-    @. return inv(2*sqrt(x))
+    @. return inv(2*sqrt(x)) * gy
 end
 
 function backward(f::Inv, gy::ScalarTypes)
     x = f.grad_field.inputs[1]
-    return -1/x^2
+    return (-gy /(x^2))
 end
 
 function backward(f::Inv, gy::TensorTypes)
     x = f.grad_field.inputs[1]
-    @. return -1/x^2
+    return (-gy ./ (x.^2)) 
 end
 
 Base.sin(x::Scalar) = call!(Sin, x)
@@ -154,7 +154,7 @@ function Base.log(x::AbstractTensor)
     call!(Log, x)
 end
 
-function Base.exp(x::AbstractTensor)
+function Base.exp(x::AbstractTensor) 
     check_broadcastable(x)
     call!(Exp, x)
 end
@@ -171,3 +171,30 @@ end
 
 
 Base.literal_pow(::typeof(^), x::Scalar, ::Val{2}) = call!(Square, x)
+
+function Base.literal_pow(::typeof(^), x::AbstractTensor, ::Val{2})  
+    check_broadcastable(x)
+    call!(Square, x)
+end
+
+
+function Base.broadcasted(::typeof(Base.literal_pow), ::typeof(^), x::AbstractTensor, ::Val{c}) where c 
+    if c == 2
+        x.req_broadcast = true
+        call!(Square, x)
+    else
+        x.req_broadcast = true
+        call!(Pow, PowField(c), x)
+    end
+end
+
+
+function Base.broadcasted(::typeof(^), x::Variable, c)
+    if c == 2
+        x.req_broadcast = true
+        call!(Square, x)
+    else
+        x.req_broadcast = true
+        call!(Pow, PowField(c), x)
+    end
+end
