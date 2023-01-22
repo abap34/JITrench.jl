@@ -242,7 +242,11 @@ end
 
 function Base.:^(x1::AbstractTensor, x2::Scalar)
     if check_broadcastable(x1, x2)
-        call!(Pow, PowField(x2), x1, x2)
+        if x2.values == 2
+            call!(Square, x1)
+        else
+            call!(Pow, PowField(x2), x1, x2)
+        end
     else
         throw(BroadcastCallError())
     end
@@ -252,8 +256,13 @@ end
 function Base.:^(x1::Scalar, x2::AbstractTensor)
     x1 = Scalar(x1)
     if check_broadcastable(x1, x2)
-        call!(Pow, PowField(x2), x1, x2)
+        if x1.values == 2
+            call!(Square, x2)
+        else
+            call!(Pow, PowField(x2), x1, x2)
+        end
     else
         throw(BroadcastCallError())
     end
 end
+
