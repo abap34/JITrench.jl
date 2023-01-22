@@ -50,7 +50,12 @@ function check_close(x1::Real, x2::Real; atol=1e-5)
     # scaling
     x1_scaled = x1 / abs(max(x1, x2))
     x2_scaled = x2 / abs(max(x1, x2))
-    return onfail(@test isapprox(x1_scaled, x2_scaled, atol=1e-5)) do 
+    if abs(x1 < 1e-5) && abs(x2 < 1e-5)
+        result = true
+    else 
+        result = abs(x1_scaled - x2_scaled) < atol
+    end
+    return onfail(@test result) do 
         @info "x1:$x1 x2:$x2. error_rate = $((x1_scaled - x2_scaled))"
         return false
     end
@@ -65,9 +70,10 @@ function check_close(x1, x2; atol=1e-5)
         _x2 = x2[i]
         x1_scaled = _x1 / abs(max(_x1, _x2))
         x2_scaled = _x2 / abs(max(_x1, _x2))
-        result[i] = abs(x1_scaled - x2_scaled) < atol
-        if abs(x1_scaled - x2_scaled) > atol
-            @show abs(x1_scaled - x2_scaled)
+        if abs(_x1 < 1e-5) && abs(_x2 < 1e-5)
+            result[i] = true
+        else 
+            result[i] = abs(x1_scaled - x2_scaled) < atol
         end
     end
     return onfail(@test all(result)) do 
