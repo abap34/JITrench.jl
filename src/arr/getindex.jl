@@ -32,6 +32,10 @@ end
 function add_at!(A::T, index, val) where {T <: AbstractArray}
     A[index...] .+= val
 end
+function add_at!(A::T, index, val) where {T <: Vector}
+    A[index...] += val
+end
+
 
 function forward(
     ::Type{NBinaryMatrix},
@@ -57,7 +61,7 @@ nbinary_matrix(shape, index, gy::T) where {T <: Variable} =
 
 function nbinary_matrix(shape, index, gy::R) where {R <: Real}
     y = zeros(shape)
-    add_at!(y, index, x)
+    add_at!(y, index, gy)
     return y
 end
 
