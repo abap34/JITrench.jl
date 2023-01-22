@@ -8,7 +8,7 @@ Base.showerror(io::IO, e::NotSameShapeError) = print(io,
 "Arguments must be same shape, Arguments shaps are $(shape).",
 )
 
-check_sameshape(args...) = allequal(size.(args)) ? nothing : throw(NotSameShapeError(size.(args)))
+check_sameshape(args...) = allequal(size.(args)) 
 struct NotImplemetedError <: Exception
     msg::String
 end
@@ -51,7 +51,7 @@ end
 struct BroadcastCallError <: Exception end
 
 Base.showerror(io::IO, e::BroadcastCallError) =
-    print(io, "Please call this function with `req_broadcast")
+    print(io, "Please call this function with `req_broadcast`")
 
 function check_broadcastable(x::T) where {T <: Variable}
     if !(x.req_broadcast)

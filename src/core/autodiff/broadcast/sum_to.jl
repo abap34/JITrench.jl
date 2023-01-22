@@ -8,7 +8,7 @@ struct SumTo{T, S} <: UnaryOperator
     additional_field::SumToField{T, S}
 end
 
-function _sum_to(x::T, out_shape) where {T <: AbstractArray}
+function sum_to(x::T, out_shape) where {T <: AbstractArray}
     in_shape = size(x)
     (in_shape == out_shape) && (return x)
     lead = length(in_shape) - length(out_shape)
@@ -24,8 +24,10 @@ function _sum_to(x::T, out_shape) where {T <: AbstractArray}
     end
 end
 
+sum_to(x::AbstractArray, out_shape::Tuple{}) = sum(x)
+
 function forward(::Type{SumTo}, additional_field::SumToField, x)
-    return _sum_to(x, additional_field.out_shape)
+    return sum_to(x, additional_field.out_shape)
 end
 
 function backward(f::SumTo, gy)

@@ -32,6 +32,6 @@ function broadcast_to(x::T, shape) where {T <: Variable}
     if size(x) == shape
         return x
     else
-        return call!(BroadcastTo, BroadcastToField(size(x), shape))
+        return call!(BroadcastTo, BroadcastToField(size(x), shape), x)
     end
 end

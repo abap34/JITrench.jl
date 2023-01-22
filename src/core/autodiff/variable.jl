@@ -89,7 +89,8 @@ Base.promote(x1::T, x2::CuTensor) where {T <: AbstractArray} =
     (CuTensor(x1, device_idx = x2.device.idx), x1)
 
 
-Base.size(x::T) where {T <: AbstractTensor} = size(x.values)
+Base.size(x::Variable) = size(x.values)
+Base.length(x::Variable) = length(x.values)
 
 function get_output_str(var::Variable)
     output = ""

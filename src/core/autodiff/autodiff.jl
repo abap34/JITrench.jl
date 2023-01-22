@@ -8,7 +8,10 @@ include("device.jl")
 include("variable.jl")
 include("function_utils.jl")
 include("function.jl")
+include("broadcast/broadcast.jl")
 include("propagation.jl")
+include("broadcast/sum_to.jl")
+include("broadcast/broadcast_to.jl")
 
 const ScalarTypes = Union{Real, Scalar}
 const TensorTypes = Union{AbstractArray, Tensor, CuTensor}
@@ -29,5 +32,4 @@ export DiffableFunction,
     forward,
     backward,
     backward!
-
 end

@@ -18,5 +18,3 @@ function backward(f::MatMul, gy)
 end
 
 matmul(x, W) = call!(MatMul, x, W)
-
-Base.:*(x::T, W::S) where {T <: AbstractTensor, S <: AbstractTensor} = matmul(x, W)

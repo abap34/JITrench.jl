@@ -9,13 +9,13 @@ struct Flatten{T} <: UnaryOperator
 end
 
 
-function forward(::Flatten, additional_field, x)
+function forward(::Type{Flatten}, additional_field, x)
     return vcat(x...)
 end
 
 function backward(f::Flatten, gy)
     in_shape = f.additional_field.in_shape
-    reshape(gy, in_shape)
+    return reshape(gy, in_shape)
 end
 
 
