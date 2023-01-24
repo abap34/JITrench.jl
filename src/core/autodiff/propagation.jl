@@ -1,5 +1,10 @@
 using DataStructures
 
+struct NotImplementedError <: Exception end
+
+# TODO: Better error massage
+Base.showerror(io::IO, e::NotImplementedError) = print(io, "Not Implemented")
+
 function forward(args...)
     throw(NotImplementedError())
 end
