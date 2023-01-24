@@ -12,10 +12,17 @@ include("core/math_functions.jl")
 include("arr/arr.jl")
 # end
 
+
+# begin NN
+include("nn/nn.jl")
+# end
+
 include("utils/error.jl")
 include("utils/out.jl")
 include("utils/plot.jl")
 include("utils/utils_macro.jl")
+
+
 
 export AutoDiff, backward!, Scalar, Tensor, CuTensor
 
