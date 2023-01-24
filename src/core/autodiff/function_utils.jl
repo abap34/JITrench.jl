@@ -12,7 +12,7 @@ using DataStructures
 
 @inline ones_like(::Tensor) = Tensor(ones(eltype(x.values), size(x.values)))
 
-@inline function cleargrad!(x::T) where {T <: Variable}
+@inline function cleargrad!(x::Variable)
     x.grad = nothing
 end
 
