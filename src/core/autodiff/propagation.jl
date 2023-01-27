@@ -252,9 +252,9 @@ end
 
 
 @inline function update_que!(
-    f::Nothing,
-    seen_set::Set{DiffableFunction},
-    pq::PriorityQueue{DiffableFunction, Int},
+    ::Nothing,
+    ::Set{DiffableFunction},
+    ::PriorityQueue{DiffableFunction, Int},
 )
     # nothing to do
 end
