@@ -68,3 +68,12 @@ function check_broadcastable(x::T) where {T<:Variable}
         throw(BroadcastCallError())
     end
 end
+
+function check_broadcastable(args...)
+    for arg in args
+        if arg.req_broadcast
+            return true
+        end
+    end
+    return false
+end
