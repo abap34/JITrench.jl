@@ -60,7 +60,6 @@ julia> y.grad
 3.3109701e7
 
 julia> JITrench.plot_graph(z, to_file="example/visualize/goldstain.png")
-Process(`dot /Users/yuchi_ymgc/.JITrench/tmp_graph.dot -T png -o example/visualize/goldstain.png`, ProcessExited(0))
 ```
 
 ![](example/visualize/goldstain.png)
