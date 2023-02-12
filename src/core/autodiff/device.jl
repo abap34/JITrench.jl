@@ -6,7 +6,7 @@ struct GPU <: Device
     idx::Int64
     function GPU(idx::Int64)
         if idx < 0
-            throw()
+            # TODO: implement Error
         end
         return new(idx)
     end
