@@ -95,7 +95,22 @@ end
     return func
 end
 
-function call!(F::Type{<:UnaryOperator}, x::T; nograd = false) where {T <: Variable}
+function call!(F::Type{<:DiffableFunction}, xs::Variable...; nograd=false)
+    for x in xs
+        if x.req_broadcast
+            return call!(BroadcastWrapper{F}, x)
+        end
+    end
+    inputs = xs
+    xs_values = get_values.(xs)
+    y = forward(F, xs_values...)
+    (nograd) && (return y)
+    gen = minimum(x -> x.generation, xs)
+    func = make_func(F, y, inputs, gen)
+    return func.grad_field.output
+end
+
+function call!(F::Type{<:UnaryOperator}, x::Variable; nograd = false)
     if x.req_broadcast
         return call!(BroadcastWrapper{F}, x)
     end
@@ -288,6 +303,28 @@ end
 
 
 function calculate_grad!(
+    f::DiffableFunction,
+    seen_set::Set{DiffableFunction},
+    que::PriorityQueue{DiffableFunction, Int};
+    retain_grad = false,
+    create_graph = false,
+)
+    gy = get_gy(f)
+    gxs = backward(f, gy)
+    xs = f.grad_field.inputs
+    nograd = !(create_graph)
+    for i in eachindex(xs)
+        set_grad!(xs[i], gxs[i], nograd=nograd)
+        update_que!(xs[i].creator, seen_set, que)
+    end        
+    if !(retain_grad)
+        f.grad_field.output.grad = nothing
+    end
+    return nothing
+end
+    
+
+function calculate_grad!(
     f::UnaryOperator,
     seen_set::Set{DiffableFunction},
     que::PriorityQueue{DiffableFunction, Int};
@@ -414,6 +451,8 @@ function Base.broadcasted(f::Function, x1, x2::Variable)
     y.req_broadcast = false
     return y
 end
+
+    
 
 function calculate_grad!(
     wrapper::BroadcastWrapper{<:BinaryOperator},
