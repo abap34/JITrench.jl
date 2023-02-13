@@ -27,7 +27,7 @@ julia> using JITrench
 julia> f(x) = sin(x) + 1
 f (generic function with 1 method)
 
-julia> @diff! f(x)
+julia> JITrench.@diff! f(x)
 f′ (generic function with 1 method)
 
 julia> f′(π)
@@ -38,23 +38,18 @@ julia> f′(π)
 ## Compute gradients for "Deep" functions, visualize computational graphs
 
 ```julia
-julia> x = AutoDiff.Scalar(2.5, name="x")
-name: x 
-values: 2.5
-creator: User-Defined(nothing)
+julia> x = Scalar(2.5)
+Scalar{Float64}(2.5) 
 
-julia> y = AutoDiff.Scalar(3.5, name="y")
-name: y 
-values: 3.5
-creator: User-Defined(nothing)
+
+julia> y = Scalar(3.5)
+Scalar{Float64}(3.5) 
 
 julia> goldstain(x, y) = (1 + (x + y + 1)^2 * (19 - 14x + 3x^2 - 14y + 6x*y + 3y^2)) *  (30 + (2x - 3y)^2 * (18 - 32x + 12x^2 + 48y - 36x*y + 27*y^2))
 goldstain (generic function with 1 method)
 
 julia> z = goldstain(x, y)
-name: nothing 
-values: 1.260939725e7
-creator: JITrench.Mul
+Scalar{Float64}(1.260939725e7) 
 
 julia> backward!(z)
 
@@ -74,24 +69,28 @@ julia> JITrench.plot_graph(z, to_file="example/visualize/goldstain.png")
 
 ```julia
 julia> A = AutoDiff.Tensor([1 2; 3 4; 5 6])
-name: nothing 
-values: [1 2; 3 4; 5 6]
-creator: User-Defined(nothing)
+3×2 Tensor{Matrix{Int64}}: 
+ 1  2
+ 3  4
+ 5  6 
+ 
 
 julia> B = reshape(A, (2, 3))
-name: nothing 
-values: [1 5 4; 3 2 6]
-creator: JITrench.ArrOperator.Reshape{Tuple{Int64, Int64}, Tuple{Int64, Int64}}
+2×3 Tensor{Matrix{Int64}}: 
+ 1  5  4
+ 3  2  6 
+ 
 
 julia> C = B[1, :]
-name: nothing 
-values: [1, 5, 4]
-creator: JITrench.ArrOperator.GetIndex{Tuple{Int64, Int64}, Tuple{Int64, Colon}}
+3×1 Tensor{Vector{Int64}}: 
+ 1
+ 5
+ 4 
+ 
 
 julia> y = sum(C)
-name: nothing 
-values: 10
-creator: JITrench.ArrOperator.Sum
+Scalar{Int64}(10) 
+
 
 julia> backward!(y)
 
@@ -101,3 +100,106 @@ julia> A.grad
  0.0  1.0
  1.0  0.0
 ```
+
+# GPU Support: CuTensor
+
+With the `CuTensor` type, you can perform calculations on the GPU as you would with `Tensor`.
+
+```julia
+julia> using JITrench
+
+julia> using BenchmarkTools
+
+julia> x = Tensor(rand(512, 512));
+
+julia> W = Tensor(rand(512, 512));
+
+julia> x_gpu = CuTensor(rand(512, 512));
+
+julia> W_gpu = CuTensor(rand(512, 512));
+
+julia> @benchmark x * W
+BenchmarkTools.Trial: 7490 samples with 1 evaluation.
+ Range (min … max):  616.548 μs …  1.238 ms  ┊ GC (min … max): 0.00% … 47.29%
+ Time  (median):     649.301 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   665.530 μs ± 90.051 μs  ┊ GC (mean ± σ):  2.36% ±  7.64%
+
+    ▆█▆▂                                                  ▁    ▁
+  ▄▇████▇▆▃▃▁▁▁▄▃▁▁▁▁▃▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▆██▇▇ █
+  617 μs        Histogram: log(frequency) by time      1.19 ms <
+
+ Memory estimate: 2.00 MiB, allocs estimate: 5.
+
+julia> @benchmark x_gpu * W_gpu
+BenchmarkTools.Trial: 10000 samples with 3 evaluations.
+ Range (min … max):   8.317 μs …  12.454 ms  ┊ GC (min … max): 0.00% … 10.13%
+ Time  (median):     38.716 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   38.481 μs ± 124.332 μs  ┊ GC (mean ± σ):  0.33% ±  0.10%
+
+  ▄                                            ▃▁▂    ▁  ▄█▆▃▄ ▂
+  █▅▄▅▁▁▃▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄███▅▄▁▄█▇▆█████ █
+  8.32 μs       Histogram: log(frequency) by time      40.6 μs <
+
+ Memory estimate: 704 bytes, allocs estimate: 31.
+```
+
+
+
+
+# Example: Gradient Descent
+
+```julia
+rosenbrock(x₀, x₁) = 100 * (x₁ - x₀^2)^2 + (x₀ - 1)^2
+
+x₀ = Scalar(0.0)
+x₁ = Scalar(5.0)
+lr = 1e-3
+iters = 10000
+
+x₀_history = Float64[]
+x₁_history = Float64[]
+
+for i in 1:iters    
+    y = rosenbrock(x₀, x₁)
+
+    JITrench.AutoDiff.cleargrad!(x₀)
+    JITrench.AutoDiff.cleargrad!(x₁)
+    backward!(y)
+    
+    x₀.values -= lr * x₀.grad
+    x₁.values -= lr * x₁.grad
+end
+```
+
+![](example/visualize/gradient_decent.gif)
+
+See example/optimization/gradient_descent.jl for details.
+
+# Example: Newton Method
+
+JITrench.jl can also compute higher-order derivatives!
+
+```julia
+using JITrench
+
+f(x) = x^4 - 2x^2
+
+x = Scalar(2.0)
+iters = 10
+
+for i in 1:iters    
+    y = f(x)
+    
+    JITrench.AutoDiff.cleargrad!(x)
+    backward!(y, create_graph=true)
+    gx = x.grad
+
+JITrench.AutoDiff.cleargrad!(gx)
+    backward!(gx)
+    gx2 = x.grad
+    x.values -= gx.values / gx2.values
+
+end
+```
+
+See example/optimization/newton_method.jl for details.

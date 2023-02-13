@@ -24,13 +24,5 @@ _get_gf(f::DiffableFunction) = f.grad_field
 
 
 function Base.show(io::IO, ::MIME"text/plain", f::DiffableFunction)
-    gf = _get_gf(f)
-    print(
-        io,
-        """
-$(typeof(f))
-    inputs: $(gf.inputs)
-    output: $(gf.output)
-    generation: $(gf.generation)""",
-    )
+    print(io, typeof(f))
 end

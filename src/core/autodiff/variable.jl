@@ -1,8 +1,6 @@
 using CUDA
 import Base
 
-abstract type Variable end
-abstract type DiffableFunction end
 
 mutable struct Scalar{T <: Real} <: Variable
     values::T
@@ -109,12 +107,57 @@ end
 
 
 
+function shape_to_out(shape)
+    if length(shape) == 1
+        return "$(shape[begin])×1"
+    end
+
+    out = "$(shape[begin])"
+
+    for element in shape[2:end]
+        out *= "×" * string(element) 
+    end
+    return out
+end
+
+
+# REPL
+function Base.show(io::IO, ::MIME"text/plain", x::Scalar)
+    type_name = repr(typeof(x.values))
+    print(io, "Scalar{$type_name}($(x.values)) \n")
+end
+
 # print()
-function Base.show(io::IO, var::Variable)
-    print(io, "Variable($(var.values))")
+function Base.show(io::IO, x::Scalar)
+    print(io, "Scalar($(x.values)) \n")
 end
 
 # REPL
-function Base.show(io::IO, ::MIME"text/plain", var::Variable)
-    print(io, get_output_str(var))
+function Base.show(io::IO, ::MIME"text/plain", x::Tensor)
+    shape = size(x)
+    shape_output = shape_to_out(shape)
+    type_name = repr(typeof(x.values))
+    out = repr("text/plain", x.values)
+    value_output = out[findfirst("\n", out)[end]+2:end]
+    print(io, "$shape_output Tensor{$type_name}: \n $value_output \n ")
+end
+
+# print()
+function Base.show(io::IO, x::Tensor)
+    print(io, "Tensor($(x.values)) \n")
+end
+
+# REPL
+function Base.show(io::IO, ::MIME"text/plain", x::CuTensor)
+    shape = size(x)
+    shape_output = shape_to_out(shape)
+    type_name = repr(typeof(x.values))
+    out = repr("text/plain", x.values)
+    value_output = out[findfirst("\n", out)[end]+2:end]
+    print(io, "$shape_output CuTensor{$type_name}: \n $value_output \n ")
+end
+
+# print()
+function Base.show(io::IO, x::CuTensor)
+    print(io, "CuTensor($(x.values)) \n")
 end

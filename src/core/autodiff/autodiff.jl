@@ -1,7 +1,8 @@
 module AutoDiff
 
+abstract type JTFunction end
 abstract type Variable end
-abstract type DiffableFunction end
+abstract type DiffableFunction  <: JTFunction end
 
 
 include("device.jl")
