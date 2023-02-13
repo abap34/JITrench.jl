@@ -100,3 +100,61 @@ julia> A.grad
  0.0  1.0
  1.0  0.0
 ```
+
+# Example: Gradient Descent
+
+```julia
+rosenbrock(x₀, x₁) = 100 * (x₁ - x₀^2)^2 + (x₀ - 1)^2
+
+x₀ = Scalar(0.0)
+x₁ = Scalar(5.0)
+lr = 1e-3
+iters = 10000
+
+x₀_history = Float64[]
+x₁_history = Float64[]
+
+for i in 1:iters    
+    y = rosenbrock(x₀, x₁)
+
+    JITrench.AutoDiff.cleargrad!(x₀)
+    JITrench.AutoDiff.cleargrad!(x₁)
+    backward!(y)
+    
+    x₀.values -= lr * x₀.grad
+    x₁.values -= lr * x₁.grad
+end
+```
+
+![](example/visualize/gradient_decent.gif)
+
+See example/optimization/gradient_descent.jl for details.
+
+# Example: Newton Method
+
+JITrench.jl can also compute higher-order derivatives!
+
+```julia
+using JITrench
+
+f(x) = x^4 - 2x^2
+
+x = Scalar(2.0)
+iters = 10
+
+for i in 1:iters    
+    y = f(x)
+    
+    JITrench.AutoDiff.cleargrad!(x)
+    backward!(y, create_graph=true)
+    gx = x.grad
+
+JITrench.AutoDiff.cleargrad!(gx)
+    backward!(gx)
+    gx2 = x.grad
+    x.values -= gx.values / gx2.values
+
+end
+```
+
+See example/optimization/newton_method.jl for details.
