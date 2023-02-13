@@ -4,7 +4,7 @@
 <h1 align="center">
   <img src=https://cdn.discordapp.com/attachments/810478331790491681/855768153913425930/unknown.png  width=450><br/>
 </h1>
-<p align="center">JITrench.jl is an automatic differentiation and deep learning framework developed in the Julia language!</b></p>
+<p align="center">lightweight, <br>scalable, <br>and affordable deep learning framework.<br>Let's dive into the deep trenches of the loss function <br>with JITrench.jl.</b></p>
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://abap34.github.io/JITrench.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://abap34.github.io/JITrench.jl/dev)
@@ -101,20 +101,54 @@ julia> A.grad
  1.0  0.0
 ```
 
-
 # GPU Support: CuTensor
 
+With the `CuTensor` type, you can perform calculations on the GPU as you would with `Tensor`.
 
 ```julia
+julia> using JITrench
 
-`
+julia> using BenchmarkTools
+
+julia> x = Tensor(rand(512, 512));
+
+julia> W = Tensor(rand(512, 512));
+
+julia> x_gpu = CuTensor(rand(512, 512));
+
+julia> W_gpu = CuTensor(rand(512, 512));
+
+julia> @benchmark x * W
+BenchmarkTools.Trial: 7490 samples with 1 evaluation.
+ Range (min … max):  616.548 μs …  1.238 ms  ┊ GC (min … max): 0.00% … 47.29%
+ Time  (median):     649.301 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   665.530 μs ± 90.051 μs  ┊ GC (mean ± σ):  2.36% ±  7.64%
+
+    ▆█▆▂                                                  ▁    ▁
+  ▄▇████▇▆▃▃▁▁▁▄▃▁▁▁▁▃▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▆██▇▇ █
+  617 μs        Histogram: log(frequency) by time      1.19 ms <
+
+ Memory estimate: 2.00 MiB, allocs estimate: 5.
+
+julia> @benchmark x_gpu * W_gpu
+BenchmarkTools.Trial: 10000 samples with 3 evaluations.
+ Range (min … max):   8.317 μs …  12.454 ms  ┊ GC (min … max): 0.00% … 10.13%
+ Time  (median):     38.716 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   38.481 μs ± 124.332 μs  ┊ GC (mean ± σ):  0.33% ±  0.10%
+
+  ▄                                            ▃▁▂    ▁  ▄█▆▃▄ ▂
+  █▅▄▅▁▁▃▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▄███▅▄▁▄█▇▆█████ █
+  8.32 μs       Histogram: log(frequency) by time      40.6 μs <
+
+ Memory estimate: 704 bytes, allocs estimate: 31.
+```
+
+
 
 
 # Example: Gradient Descent
 
 ```julia
-using JITrench
-
 rosenbrock(x₀, x₁) = 100 * (x₁ - x₀^2)^2 + (x₀ - 1)^2
 
 x₀ = Scalar(0.0)
