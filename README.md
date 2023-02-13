@@ -4,7 +4,7 @@
 <h1 align="center">
   <img src=https://cdn.discordapp.com/attachments/810478331790491681/855768153913425930/unknown.png  width=450><br/>
 </h1>
-<p align="center">lightweight, <br>scalable, <br>and affordable deep learning framework.<br>Let's dive into the deep trenches of the loss function <br>with JITrench.jl.</b></p>
+<p align="center">JITrench.jl is an automatic differentiation and deep learning framework developed in the Julia language!</b></p>
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://abap34.github.io/JITrench.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://abap34.github.io/JITrench.jl/dev)
@@ -101,9 +101,20 @@ julia> A.grad
  1.0  0.0
 ```
 
+
+# GPU Support: CuTensor
+
+
+```julia
+
+`
+
+
 # Example: Gradient Descent
 
 ```julia
+using JITrench
+
 rosenbrock(x₀, x₁) = 100 * (x₁ - x₀^2)^2 + (x₀ - 1)^2
 
 x₀ = Scalar(0.0)
