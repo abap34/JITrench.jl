@@ -4,7 +4,7 @@
 <h1 align="center">
   <img src=https://cdn.discordapp.com/attachments/810478331790491681/855768153913425930/unknown.png  width=450><br/>
 </h1>
-<p align="center">lightweight, <br>scalable, <br>and affordable deep learning framework.<br>Let's dive into the deep trenches of the loss function <br>with JITrench.jl.</b></p>
+<p align="center">Let's dive into the deep trenches of the loss function <br>with JITrench.jl.</b></p>
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://abap34.github.io/JITrench.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://abap34.github.io/JITrench.jl/dev)
@@ -156,16 +156,11 @@ x₁ = Scalar(5.0)
 lr = 1e-3
 iters = 10000
 
-x₀_history = Float64[]
-x₁_history = Float64[]
-
 for i in 1:iters    
     y = rosenbrock(x₀, x₁)
-
     JITrench.AutoDiff.cleargrad!(x₀)
     JITrench.AutoDiff.cleargrad!(x₁)
     backward!(y)
-    
     x₀.values -= lr * x₀.grad
     x₁.values -= lr * x₁.grad
 end
@@ -189,16 +184,13 @@ iters = 10
 
 for i in 1:iters    
     y = f(x)
-    
     JITrench.AutoDiff.cleargrad!(x)
     backward!(y, create_graph=true)
     gx = x.grad
-
-JITrench.AutoDiff.cleargrad!(gx)
+    JITrench.AutoDiff.cleargrad!(gx)
     backward!(gx)
     gx2 = x.grad
     x.values -= gx.values / gx2.values
-
 end
 ```
 
