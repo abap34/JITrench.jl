@@ -9,7 +9,7 @@ include("core/operators.jl")
 include("core/math_functions.jl")
 
 # begin ArrOperator 
-include("arr/arr.jl")
+include("core/arr/arr.jl")
 # end
 
 
