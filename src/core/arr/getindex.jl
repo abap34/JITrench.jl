@@ -54,7 +54,7 @@ function backward(f::NBinaryMatrix, gx)
     return gx[index]
 end
 
-Base.getindex(x::T, ind...) where {T <: AbstractTensor} =
+Base.getindex(x::T, ind) where {T <: AbstractTensor} =
     call!(GetIndex, GetIndexField(size(x), ind), x)
 nbinary_matrix(shape, index, gy::T) where {T <: Variable} =
     call!(NBinaryMatrix, NBinaryMatrixField(index, shape), gy)
