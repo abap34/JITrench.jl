@@ -78,19 +78,19 @@ Base.:/(x1::AbstractArray, x2::Scalar) = call!(MapApplyDiv, Tensor(x1), x2)
 Base.:/(x1::AbstractTensor, x2::Real) = call!(MapApplyDiv, x1, Scalar(x2))
 
 
-function call!(f::Type{AutoDiff.BroadcastWrapper{MapApplyNeg}}, x::AbstractTensor, nograd=false) 
+function call!(f::Type{AutoDiff.BroadcastWrapper{MapApplyNeg}}, x::AbstractTensor) 
     x.req_broadcast = false
     call!(MapApplyNeg, x, nograd=nograd)
 end
 
 
-function call!(f::Type{AutoDiff.BroadcastWrapper{MapApplyMul}},  x1::Variable, x2::Variable, nograd=false) 
+function call!(f::Type{AutoDiff.BroadcastWrapper{MapApplyMul}},  x1::Variable, x2::Variable) 
     x1.req_broadcast = false
     x2.req_broadcast = false
     call!(MapApplyMul, x1, x2, nograd=nograd)
 end
 
-function call!(f::Type{AutoDiff.BroadcastWrapper{MapApplyDiv}},  x1::Variable, x2::Variable, nograd=false) 
+function call!(f::Type{AutoDiff.BroadcastWrapper{MapApplyDiv}},  x1::Variable, x2::Variable) 
     x1.req_broadcast = false
     x2.req_broadcast = false
     call!(MapApplyDiv, x1, x2, nograd=nograd)
