@@ -109,7 +109,7 @@ end
 
 function shape_to_out(shape)
     if length(shape) == 1
-        return "$(shape[begin])×1"
+        return "$(shape[begin])"
     end
 
     out = "$(shape[begin])"
