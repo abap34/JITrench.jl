@@ -1,3 +1,3 @@
 module NN
-    include("functions/functions.jl")
+    include("function/functions.jl")
 end
