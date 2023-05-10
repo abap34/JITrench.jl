@@ -109,7 +109,7 @@ end
 
 function shape_to_out(shape)
     if length(shape) == 1
-        return "$(shape[begin])×1"
+        return "$(shape[begin])-element"
     end
 
     out = "$(shape[begin])"
@@ -124,12 +124,12 @@ end
 # REPL
 function Base.show(io::IO, ::MIME"text/plain", x::Scalar)
     type_name = repr(typeof(x.values))
-    print(io, "Scalar{$type_name}($(x.values)) \n")
+    print(io, "Scalar{$type_name}($(x.values))")
 end
 
 # print()
 function Base.show(io::IO, x::Scalar)
-    print(io, "Scalar($(x.values)) \n")
+    print(io, "Scalar($(x.values))")
 end
 
 # REPL
@@ -139,7 +139,7 @@ function Base.show(io::IO, ::MIME"text/plain", x::Tensor)
     type_name = repr(typeof(x.values))
     out = repr("text/plain", x.values)
     value_output = out[findfirst("\n", out)[end]+2:end]
-    print(io, "$shape_output Tensor{$type_name}: \n $value_output \n ")
+    print(io, "$shape_output Tensor{$type_name}: \n $value_output")
 end
 
 # print()

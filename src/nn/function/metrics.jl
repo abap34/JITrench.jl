@@ -1,5 +1,5 @@
-function accuracy(::AbstractArray{AbstractFloat}, ::AbstractArray{AbstractFloat})
-    # TODO better impl
+function accuracy(::AbstractArray{<:AbstractFloat}, ::AbstractArray{<:AbstractFloat})
+    # TODO impl error
     throw(DomainError(""))
 end
     

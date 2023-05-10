@@ -1,5 +1,7 @@
 module JITrench
 
+nograd :: Bool = false
+
 import Base
 
 # begin AutoDiff module
@@ -9,7 +11,7 @@ include("core/operators.jl")
 include("core/math_functions.jl")
 
 # begin ArrOperator 
-include("arr/arr.jl")
+include("core/arr/arr.jl")
 # end
 
 
