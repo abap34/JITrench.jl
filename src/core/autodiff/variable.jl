@@ -135,6 +135,11 @@ end
 # REPL
 function Base.show(io::IO, ::MIME"text/plain", x::Tensor)
     shape = size(x)
+    # empty array
+    if shape == (0, )
+        print(io, "EmptyTensor[]")
+        return
+    end
     shape_output = shape_to_out(shape)
     type_name = repr(typeof(x.values))
     out = repr("text/plain", x.values)
@@ -150,6 +155,10 @@ end
 # REPL
 function Base.show(io::IO, ::MIME"text/plain", x::CuTensor)
     shape = size(x)
+    if shape == (0, )
+        print(io, "EmptyCuTensor[]")
+        return 
+    end
     shape_output = shape_to_out(shape)
     type_name = repr(typeof(x.values))
     out = repr("text/plain", x.values)
