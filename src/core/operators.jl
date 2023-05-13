@@ -156,7 +156,7 @@ Base.:-(x::Variable) = call!(Neg, x)
 
 
 Base.:-(x1::AbstractTensor, x2::Real) = call!(Sub, x1, Scalar(x2))
-Base.:-(x1::Real, x2::AbstractArray) = call!(Sub, Scalar(x1), x2)
+Base.:-(x1::Real, x2::AbstractTensor) = call!(Sub, Scalar(x1), x2)
 Base.:-(x1::AbstractArray, x2::Scalar) = call!(Sub, Tensor(x1), x2)
 Base.:-(x1::Scalar, x2::AbstractArray) = call!(Sub, x1, Tensor(x2))
 

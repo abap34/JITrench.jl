@@ -7,6 +7,11 @@ import Base
 # begin AutoDiff module
 include("core/autodiff/autodiff.jl")
 # end
+
+
+export AutoDiff, DiffableFunction, backward!, Scalar, AbstractTensor, Tensor, CuTensor
+
+
 include("core/operators.jl")
 include("core/math_functions.jl")
 
@@ -26,6 +31,5 @@ include("utils/utils_macro.jl")
 
 
 
-export AutoDiff, backward!, Scalar, Tensor, CuTensor
 
 end

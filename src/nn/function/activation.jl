@@ -12,7 +12,7 @@ function backward(f::Sigmoid, gy::ScalarTypes)
 end
 
 function backward(f::Sigmoid, gy::TensorTypes) 
-    y = f.grad_field.outputs[1]
+    y = f.grad_field.output
     @. return (y * (1 - y)) * gy
 end
 

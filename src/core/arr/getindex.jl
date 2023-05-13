@@ -29,11 +29,19 @@ struct NBinaryMatrix <: UnaryOperator
     additional_field::NBinaryMatrixField
 end
 
-function add_at!(A::T, index, val) where {T <: AbstractArray}
+function add_at!(A::T, index::Tuple, val) where {T <: AbstractArray}
     A[index...] .+= val
 end
-function add_at!(A::T, index, val) where {T <: Vector}
-    A[index...] += val
+
+function add_at!(A::T, index::Int, val) where {T <: AbstractArray}
+    A[index] += val
+end
+function add_at!(A::T, index::Tuple, val) where {T <: Vector}
+    A[index...] .+= val
+end
+
+function add_at!(A::T, index::Int, val) where {T <: Vector}
+    A[index] += val
 end
 
 
@@ -54,8 +62,12 @@ function backward(f::NBinaryMatrix, gx)
     return gx[index]
 end
 
-Base.getindex(x::T, ind) where {T <: AbstractTensor} =
+Base.getindex(x::T, ind::Int) where {T <: AbstractTensor} =
     call!(GetIndex, GetIndexField(size(x), ind), x)
+
+Base.getindex(x::T, ind...) where {T <: AbstractTensor} =
+    call!(GetIndex, GetIndexField(size(x), ind), x)
+
 nbinary_matrix(shape, index, gy::T) where {T <: Variable} =
     call!(NBinaryMatrix, NBinaryMatrixField(index, shape), gy)
 
