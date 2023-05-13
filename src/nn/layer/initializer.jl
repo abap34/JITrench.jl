@@ -30,6 +30,14 @@ function Base.broadcasted(f, args::Tuple{AbstractTensor, ParameterRegister, Dict
     args[1].req_broadcast = false
 end
 
+function iterate_all(params::ParameterRegister)
+    return Base.Iterators.map(x -> x.second, Iterators.flatten(values(params.weight)))
+end
+
+function iterate_layer(params::ParameterRegister)
+    return params.weight
+end
+
 
 function Base.broadcasted(f, initializer::Initializer)
     f(initializer)
