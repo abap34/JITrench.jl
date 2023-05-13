@@ -1,4 +1,4 @@
-import ..JITrench: forward, GradField
+import ..JITrench: forward, backward, GradField
 
 struct LinearFn <: DiffableFunction
     grad_field :: GradField
@@ -6,7 +6,7 @@ end
 
 JITrench.forward(::Type{LinearFn}, x, W, b) = x * W .+ b
 
-function backward(f::LinearFn, gy)
+function JITrench.backward(f::LinearFn, gy)
     x, W, b = f.grad_field.inputs
     gx = gy * transpose(W)
     gW = transpose(x) * gy
