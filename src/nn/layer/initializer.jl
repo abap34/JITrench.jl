@@ -38,13 +38,15 @@ function iterate_layer(params::ParameterRegister)
     return params.weight
 end
 
+function cleargrads!(params::ParameterRegister)
+    for param in iterate_all(params)
+        JITrench.AutoDiff.cleargrad!(param)
+    end
+end
 
 function Base.broadcasted(f, initializer::Initializer)
     f(initializer)
 end
-
-
-
 
 function JITrench.call!(F::Type{<:DiffableFunction}, initializer::Initializer{<:Tuple}) 
     register!(
