@@ -2,7 +2,7 @@ struct MeanSquaredError <: BinaryOperator
     grad_field :: GradField
 end
 
-forward(::Type{MeanSquaredError}, x1, x2) = sum((x1 - x2).^2)
+forward(::Type{MeanSquaredError}, x1, x2) = sum((x1 - x2).^2) / length(x1)
 
 function backward(f::MeanSquaredError, gy::ScalarTypes)
     x1, x2 = f.grad_field.inputs
