@@ -1,8 +1,14 @@
-function xavier(in_dim, out_dim)
-    return randn(in_dim, out_dim) ./ sqrt(in_dim)
+using JLD2
+
+JLD2.writeas(::Type{Tensor{T}}) where T = T
+JLD2.wconvert(::Type{<: AbstractArray}, x::AbstractTensor) = x.values
+JLD2.rconvert(::Type{Tensor{T}}, x::T) where T = Tensor(x)
+
+function save_weight(parameter::Parameter, filename::AbstractString)
+    jldsave(filename * ".jtw"; parameter)
+    return
 end
 
-
-function he(in_dim, out_dim)
-    return randn(in_dim, out_dim) ./ sqrt(2 / in_dim)
+function load_weight(filename::AbstractString)
+    return jldopen(filename * ".jtw")["parameter"]
 end
