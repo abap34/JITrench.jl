@@ -195,3 +195,54 @@ end
 ```
 
 See example/optimization/newton_method.jl for details.
+
+# Example: Train Neural Network
+
+```julia
+using JITrench
+using JITrench.NN 
+using Printf
+
+
+N = 100
+p = 1
+n_iter = 20000
+
+x = rand(N, p)
+y = sin.(2π .* x) + (rand(N, p) / 1)
+
+function model(x)
+    x = NN.Linear(out_dim=10)(x)
+    x = NN.functions.sigmoid.(x)
+    x = NN.Linear(out_dim=1)(x)
+    return NN.result(x)
+end
+
+params = NN.init(model, NN.Initializer((nothing, 1)))
+optimizer = NN.SGD(params, 1e-1)
+
+x = Tensor(x)
+y = Tensor(y)
+
+for iter in 1:n_iter
+    pred = NN.apply(model, x, params)
+    loss = NN.functions.mean_squared_error(y, pred)
+    NN.cleargrads!(params)
+    backward!(loss)
+    NN.optimize!(optimizer)
+    if (iter % 500 == 0)
+        @printf "[iters] %4i [loss] %.4f\n" iter loss.values 
+    end
+end
+
+
+NN.save_weight(params, "weight")
+```
+
+This is a simple example of training a sine curve on an MLP and saving the weights as 'weights.jtw'
+
+Progress of the training:
+
+![](example/NN/learning.gif)
+
+The visualization code is available in 'example/NN/MLP.jl'.

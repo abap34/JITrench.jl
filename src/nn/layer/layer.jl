@@ -1,4 +1,5 @@
 using ..JITrench 
+using DataStructures: OrderedDict, DefaultDict
 
 Parameter = OrderedDict{String, Dict{String, <: Tensor}}
 
