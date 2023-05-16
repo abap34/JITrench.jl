@@ -11,4 +11,4 @@ function backward(f::MeanSquaredError, gy::ScalarTypes)
     return gx1, -gx1
 end
 
-mean_squared_error(x1::Tensor{<:Vector}, x2::Tensor{<:Vector}) = call!(MeanSquaredError, x1, x2)
+mean_squared_error(x1::Tensor, x2::Tensor) = call!(MeanSquaredError, x1, x2)
