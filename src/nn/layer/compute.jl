@@ -1,15 +1,15 @@
-struct ComputeContext{T <: AbstractTensor}
+mutable struct ComputeContext{T <: AbstractTensor}
     input :: T
     params :: Parameter
-    name_controller :: DefaultDict{DataType, Int}
+    name_controller :: DefaultDict{String, Int}
 end
 
 
 function Base.broadcasted(f, ctx::ComputeContext)
     ctx.input.req_broadcast = true
-    y = f(args)
+    ctx.input = f(ctx.input)
     ctx.input.req_broadcast = false
-    return y
+    return ctx
 end
 
 
@@ -19,16 +19,16 @@ function JITrench.call!(F::Type{<:DiffableFunction}, ctx::ComputeContext)
 end
 
 function (layer::Layer)(ctx::ComputeContext)
-    layer_type = typeof(layer)
+    layer_type = string(typeof(layer))
     ctx.name_controller[layer_type] += 1
-    key = string(layer_type) * string(name_controller[layer_type])
-    weight = parameter.weight[key]
+    key = string(layer_type) * string(ctx.name_controller[layer_type])
+    weight = ctx.params[key]
     ctx.input = apply(layer, weight, ctx.input)
     return ctx
 end
 
 function apply(model::Function, x::AbstractTensor, param::Parameter)
-    name_controller = Dict{DataType, Int}()
+    name_controller = DefaultDict{String, Int}(0)
     for key in keys(param)
         name_controller[key] = 0
     end
