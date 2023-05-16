@@ -1,110 +1,48 @@
-using DataStructures: OrderedDict, DefaultDict
-using ..JITrench 
+import Base
 
-mutable struct ParameterRegister{T <: Tuple}
+struct Initializer
     weight :: OrderedDict{String, Dict{String, <:Tensor}}
-    current_shape :: T
+    current_shape :: Vector{Int}
     name_controller :: DefaultDict{DataType, Int}
-    function ParameterRegister(in_shape::T) where {T}
-        return new{T}(OrderedDict{String, Tensor}(), in_shape, DefaultDict{DataType, Int}(0))
-    end
-end
-
-struct Initializer{T <: Tuple}
-    in_shape :: T
-    parameters :: ParameterRegister
-    function Initializer(in_shape::T) where T
-        return new{T}(in_shape, ParameterRegister(in_shape))
+    function Initializer(in_shape::Tuple) 
+        in_shape_vec = Vector{Int}(undef, length(in_shape))
+        for (i, s) in enumerate(in_shape)
+            if s isa Nothing
+                in_shape_vec[i] = -1
+            else
+                in_shape_vec[i] = s
+            end
+        end
+        return new(OrderedDict{String, Dict{String, <:Tensor}}(), in_shape_vec, DefaultDict{DataType, Int}(0))
     end
 end
 
 function init(model, initializer::Initializer)
     model(initializer)
-    return initializer.parameters
-end
-
-
-function Base.broadcasted(f, args::Tuple{AbstractTensor, ParameterRegister, Dict})
-    args[1].req_broadcast = true
-    return f(args)
-    args[1].req_broadcast = false
-end
-
-function iterate_all(params::ParameterRegister)
-    return Base.Iterators.map(x -> x.second, Iterators.flatten(values(params.weight)))
-end
-
-function iterate_layer(params::ParameterRegister)
-    return params.weight
-end
-
-function cleargrads!(params::ParameterRegister)
-    for param in iterate_all(params)
-        JITrench.AutoDiff.cleargrad!(param)
-    end
+    return initializer.weight
 end
 
 function Base.broadcasted(f, initializer::Initializer)
     f(initializer)
 end
 
-function JITrench.call!(F::Type{<:DiffableFunction}, initializer::Initializer{<:Tuple}) 
+function JITrench.call!(F::Type{<:DiffableFunction}, initializer::Initializer) 
     register!(
-        initializer.parameters,
+        initializer,
         F,
         Dict{String, Tensor}()
     )
     return initializer    
 end
 
-function JITrench.call!(F::Type{<:DiffableFunction}, args::Tuple{AbstractTensor, ParameterRegister, Dict})
-    x, parameter, name_controller = args
-    result =  JITrench.call!(F, x)
-    return (
-        result,
-        parameter,
-        name_controller
-    )
-end
-
-function (layer::Layer)(args::Tuple{AbstractTensor, ParameterRegister, Dict})
-    x, parameter, name_controller = args
-    layer_type = typeof(layer)
-    name_controller[layer_type] += 1
-    key = string(layer_type) * string(name_controller[layer_type])
-    weight = parameter.weight[key]
-    result = apply(layer, weight, x)
-    return (
-        result,
-        parameter,
-        name_controller
-    )
-end
-
-function register!(parameters::ParameterRegister, layer_type::Type{<:Layer}, weight_dict::Dict{String, <:Tensor}) 
+function register!(parameters::Initializer, layer_type::Type{<:Layer}, weight_dict::Dict{String, <:Tensor}) 
     parameters.name_controller[layer_type] += 1
     parameters.weight[string(layer_type) * string(parameters.name_controller[layer_type])] = weight_dict
 end
 
-function register!(parameters::ParameterRegister, func_type::Type{<:DiffableFunction}, weight_dict::Dict{String, <:Tensor}) 
+function register!(parameters::Initializer, func_type::Type{<:DiffableFunction}, weight_dict::Dict{String, <:Tensor}) 
     parameters.name_controller[func_type] += 1
     parameters.weight[string(func_type) * string(parameters.name_controller[func_type])] = weight_dict
-end
-
-function apply(model::Function, x, param)
-    name_controller = Dict{DataType, Int}()
-    for key in keys(param.name_controller)
-        name_controller[key] = 0
-    end
-    model((x, param, name_controller))
-end
-
-function result(arg::Tuple{AbstractTensor, ParameterRegister, Dict})
-    return arg[1]
-end
-
-function result(arg)
-    return arg
 end
 
 

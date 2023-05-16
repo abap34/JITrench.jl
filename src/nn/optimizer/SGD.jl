@@ -1,5 +1,5 @@
 mutable struct SGD{F} <: AbstractOptimizer
-    watching_param :: ParameterRegister
+    watching_param :: Parameter
     lr :: F
     function SGD(param, lr::F) where F
         new{F}(param, lr)

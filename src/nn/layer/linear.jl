@@ -26,7 +26,7 @@ struct Linear <: Layer
 end
 
 function (linear::Linear)(initializer::Initializer)
-    in_dim = initializer.parameters.current_shape[2]
+    in_dim = initializer.current_shape[2]
     if !(linear.in_dim isa Nothing)
         if in_dim != linear.in_dim
             # TODO: impl Error
@@ -46,7 +46,7 @@ function (linear::Linear)(initializer::Initializer)
     b = Tensor(zeros(1, out_dim), name="b")
 
     register!(
-        initializer.parameters, 
+        initializer, 
         Linear, 
         Dict(
             "W" => W,
@@ -54,7 +54,7 @@ function (linear::Linear)(initializer::Initializer)
         )
     )
 
-    initializer.parameters.current_shape = (initializer.parameters.current_shape[1], out_dim)
+    initializer.current_shape[2] = out_dim
     return initializer    
 end
 
