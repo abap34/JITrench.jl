@@ -1,5 +1,7 @@
 using DataStructures
 
+using ..JITrench
+
 struct NotImplementedError <: Exception end
 
 # TODO: Better error massage
@@ -95,7 +97,7 @@ end
     return func
 end
 
-function call!(F::Type{<:DiffableFunction}, xs::Variable...; nograd=false)
+function call!(F::Type{<:DiffableFunction}, xs::Variable...)
     for x in xs
         if x.req_broadcast
             return call!(BroadcastWrapper{F}, x)
@@ -104,19 +106,19 @@ function call!(F::Type{<:DiffableFunction}, xs::Variable...; nograd=false)
     inputs = xs
     xs_values = get_values.(xs)
     y = forward(F, xs_values...)
-    (nograd) && (return y)
+    (JITrench.nograd) && (return y)
     gen = minimum(x -> x.generation, xs)
     func = make_func(F, y, inputs, gen)
     return func.grad_field.output
 end
 
-function call!(F::Type{<:UnaryOperator}, x::Variable; nograd = false)
+function call!(F::Type{<:UnaryOperator}, x::Variable)
     if x.req_broadcast
         return call!(BroadcastWrapper{F}, x)
     end
     inputs = (x,)
     y = forward(F, x.values)
-    (nograd) && (return y)
+    (JITrench.nograd) && (return y)
     func = make_func(F, y, inputs, x.generation)
     return func.grad_field.output
 end
@@ -126,14 +128,18 @@ function call!(
     F::Type{<:BinaryOperator},
     x1::Variable,
     x2::Variable;
-    nograd = false,
 ) 
     if x1.req_broadcast || x2.req_broadcast
         return call!(BroadcastWrapper{F}, x1, x2)
     end
     inputs = (x1, x2)
     y = forward(F, x1.values, x2.values)
-    (nograd) && (return y)
+    if (JITrench.nograd)
+        println("nograad!!!!!!")
+        println("return:", y)
+        return y
+    end
+    (JITrench.nograd) && (return y)
     gen = min(x1.generation, x2.generation)
     func = make_func(F, y, inputs, gen)
     return func.grad_field.output
@@ -145,7 +151,6 @@ function call!(
     F::Type{<:BinaryOperator},
     x1::CuTensor,
     x2::CuTensor;
-    nograd = false,
 ) 
     if x1.req_broadcast || x2.req_broadcast
         return call!(BroadcastWrapper{F}, x1, x2)
@@ -153,7 +158,7 @@ function call!(
     device_idx = check_same_device(x1.device, x2.device)
     inputs = (x1, x2)
     y = forward(F, x1.values, x2.values)
-    (nograd) && (return y)
+    (JITrench.nograd) && (return y)
     gen = min(x1.generation, x2.generation)
     func = make_func(F, y, inputs, gen)
     return func.grad_field.output
@@ -165,14 +170,13 @@ function call!(
     F::Type{<:UnaryOperator},
     additional_field::AdditionalField,
     x::Variable,
-    nograd = false,
 ) 
     if x.req_broadcast
         return call!(BroadcastWrapper{F}, additional_field, x)
     end
     inputs = (x,)
     y = forward(F, additional_field, x.values)
-    (nograd) && (return y)
+    (JITrench.nograd) && (return y)
     func = make_func(F, additional_field, y, inputs, x.generation)
     return func.grad_field.output
 end
@@ -182,11 +186,10 @@ function call!(
     additional_field::AdditionalField,
     x1::Variable,
     x2::Variable;
-    nograd = false,
 ) 
     inputs = (x1, x2)
     y = forward(F, additional_field, x1.values, x2.values)
-    (nograd) && (return y)
+    (JITrench.nograd) && (return y)
     gen = min(x1.generation, x2.generation)
     func = make_func(F, additional_field, y, inputs, gen)
     return func.grad_field.output
@@ -198,12 +201,11 @@ function call!(
     additional_field::AdditionalField,
     x1::CuTensor,
     x2::CuTensor;
-    nograd = false,
 )
     device_idx = check_same_device(x1.device, x2.device)
     inputs = (x1, x2)
     y = forward(F, additional_field, x1.values, x2.values)
-    (nograd) && (return y)
+    (JITrench.nograd) && (return y)
     gen = min(x1.generation, x2.generation)
     func = make_func(F, additional_field, y, inputs, gen)
     return func.grad_field.output
@@ -348,6 +350,7 @@ function calculate_grad!(
 end
 
 
+
 function call!(f::Type{BroadcastWrapper{F}}, additional_field::AdditionalField, x::Variable, nograd=false) where F <: UnaryOperator
     y = forward.(Ref(F), Ref(additional_field), x.values)
     (nograd) && (return y)
@@ -363,6 +366,7 @@ function call!(f::Type{BroadcastWrapper{F}}, additional_field::AdditionalField, 
     wrapped_func.grad_field.output.creator = func
     return wrapped_func.grad_field.output
 end
+
 
 
 
@@ -384,9 +388,9 @@ function call!(f::Type{BroadcastWrapper{F}}, additional_field::AdditionalField, 
     return wrapped_func.grad_field.output
 end
 
-function call!(f::Type{BroadcastWrapper{F}},  x::Variable, nograd=false) where F <: UnaryOperator
+function call!(f::Type{BroadcastWrapper{F}},  x::Variable) where F <: UnaryOperator
     y = forward.(Ref(F), x.values)
-    (nograd) && (return y)
+    (JITrench.nograd) && (return y)
     x.req_broadcast = false
     inputs = (x, )
     gf = GradField(
@@ -401,9 +405,9 @@ function call!(f::Type{BroadcastWrapper{F}},  x::Variable, nograd=false) where F
 end
 
 
-function call!(f::Type{BroadcastWrapper{F}},  x1::Variable, x2::Variable, nograd=false) where F <: BinaryOperator
+function call!(f::Type{BroadcastWrapper{F}},  x1::Variable, x2::Variable) where F <: BinaryOperator
     y = forward.(Ref(F), x1.values, x2.values)
-    (nograd) && (return y)
+    (JITrench.nograd) && (return y)
     x1.req_broadcast = false
     x2.req_broadcast = false
     inputs = (x1, x2)
@@ -433,7 +437,9 @@ function Base.broadcasted(f::Function, x1::Variable, x2::Variable)
     x1.req_broadcast = true
     x2.req_broadcast = true
     y = f(x1, x2)
-    y.req_broadcast = false
+    if !(JITrench.nograd)
+        y.req_broadcast = false
+    end
     return y
 end
 
@@ -441,14 +447,18 @@ end
 function Base.broadcasted(f::Function, x1::Variable, x2) 
     x1.req_broadcast = true
     y = f(x1, x2)
-    y.req_broadcast = false
+    if !(JITrench.nograd)
+        y.req_broadcast = false
+    end
     return y
 end
 
 function Base.broadcasted(f::Function, x1, x2::Variable) 
     x2.req_broadcast = true
     y = f(x1, x2)
-    y.req_broadcast = false
+    if !(JITrench.nograd)
+        y.req_broadcast = false
+    end
     return y
 end
     

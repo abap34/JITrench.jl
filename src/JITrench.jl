@@ -1,5 +1,7 @@
 module JITrench
 
+nograd :: Bool = false
+
 import Base
 
 # begin AutoDiff module
