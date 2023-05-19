@@ -1,6 +1,7 @@
 import ..AutoDiff: broadcast_to
 struct SumField{T <: Tuple} <: AdditionalField
     in_shape::T
+    dims :: Int
 end
 
 struct Sum <: UnaryOperator
@@ -9,7 +10,11 @@ struct Sum <: UnaryOperator
 end
 
 function forward(::Type{Sum}, additional_field::SumField, x)
-    return sum(x)
+    if additional_field.dims == -1
+        sum(x)
+    else
+        return sum(x, dims=additional_field.dims)
+    end
 end
 
 function backward(f::Sum, gy)
@@ -17,4 +22,6 @@ function backward(f::Sum, gy)
     return broadcast_to(gy, in_shape)
 end
 
-Base.sum(x::T) where {T <: AbstractTensor} = call!(Sum, SumField(size(x)), x)
+function Base.sum(x::T; dims=-1) where {T <: AbstractTensor} 
+    call!(Sum, SumField(size(x), dims), x)
+end
