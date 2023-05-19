@@ -10,8 +10,9 @@ include("core/autodiff/autodiff.jl")
 export AutoDiff, DiffableFunction, backward!, Scalar, AbstractTensor, Tensor, CuTensor
 
 
-include("core/operators.jl")
-include("core/math_functions.jl")
+include("core/functions/operators.jl")
+include("core/functions/math_functions.jl")
+include("core/functions/util_functions.jl")
 
 # begin ArrOperator 
 include("core/arr/arr.jl")
