@@ -23,7 +23,7 @@ end
 
 function backward(f::Clamp, gy::TensorTypes)
     x = f.grad_field.inputs[1]
-    @. return Int((x.values >= f.additional_field.lo) && (x.value <= f.additional_field.hi)) * gy
+    @. return Int((x.values >= f.additional_field.lo) && (x.values <= f.additional_field.hi)) * gy
 end
 
 Base.clamp(x::Scalar, lo, hi) = call!(Clamp, ClampField(lo, hi), x)
