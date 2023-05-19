@@ -167,7 +167,7 @@ function call!(
     x::Variable,
     nograd = false,
 ) 
-if x.req_broadcast
+    if x.req_broadcast
         return call!(BroadcastWrapper{F}, additional_field, x)
     end
     inputs = (x,)
@@ -349,7 +349,7 @@ end
 
 
 function call!(f::Type{BroadcastWrapper{F}}, additional_field::AdditionalField, x::Variable, nograd=false) where F <: UnaryOperator
-    y = forward.(Ref(F), additional_field, x.values)
+    y = forward.(Ref(F), Ref(additional_field), x.values)
     (nograd) && (return y)
     x.req_broadcast = false
     inputs = (x, )
@@ -367,7 +367,7 @@ end
 
 
 function call!(f::Type{BroadcastWrapper{F}}, additional_field::AdditionalField, x1::Variable, x2::Variable, nograd=false) where F <: BinaryOperator
-    y = forward.(Ref(F), additional_field, x1.values, x2.values)
+    y = forward.(Ref(F), Ref(additional_field), x1.values, x2.values)
     (nograd) && (return y)
     x1.req_broadcast = false
     x2.req_broadcast = false
@@ -451,7 +451,6 @@ function Base.broadcasted(f::Function, x1, x2::Variable)
     y.req_broadcast = false
     return y
 end
-
     
 
 function calculate_grad!(
