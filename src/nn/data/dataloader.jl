@@ -23,15 +23,19 @@ function Base.iterate(loader::DataLoader)
 end
 
 function Base.iterate(loader::DataLoader, head::Int)
-    if head + loader.batch_size > length(loader.dataset)
-        head = length(loader.dataset - head)
+    if head == -1
+        return nothing
     end
-    
+    if head + loader.batch_size > length(loader.dataset)
+        head = length(loader.dataset) - loader.batch_size
+        data = loader.dataset[head:head + loader.batch_size]
+        head = head + loader.batch_size + 1
+        return (data, -1)
+    end
     if head > length(loader.dataset)
         loader.index = randperm(length(dataset))
         return nothing
-    end
-
+    end 
     data = loader.dataset[head:head + loader.batch_size]
     head = head + loader.batch_size + 1
     return (data, head)
