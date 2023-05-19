@@ -59,7 +59,7 @@ function (linear::Linear)(initializer::Initializer)
 end
 
 
-function apply(_::Linear, weight::Dict{String, <: AbstractTensor}, x)
+function apply(::Linear, weight::Dict{String, <: AbstractTensor}, x)
     W = weight["W"]
     b = weight["b"]
     return linearfn(x, W, b)
