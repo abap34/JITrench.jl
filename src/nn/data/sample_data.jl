@@ -13,10 +13,10 @@ function mnist(train_sample=3000, val_sample=1000)
     val_y = val_y[1:val_sample]
 
     train_x = Tensor(Float64.(train_x))
-    train_y = Tensor(Float64.(train_y))
+    train_y = Tensor(Int.(train_y) .+ 1)
 
     val_x = Tensor(Float64.(val_x))
-    val_y = Tensor(Float64.(val_y))
+    val_y = Tensor(Int.(val_y) .+ 1)
 
     return train_x, train_y, val_x, val_y
 end
