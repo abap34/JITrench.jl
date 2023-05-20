@@ -24,9 +24,7 @@ include("nn/nn.jl")
 # end
 
 include("utils/error.jl")
-include("utils/out.jl")
 include("utils/plot.jl")
-include("utils/util_functions.jl")
 include("utils/utils_macro.jl")
 
 
