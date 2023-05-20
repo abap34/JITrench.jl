@@ -46,3 +46,25 @@ end
 
 
 relu(x) = call!(ReLU, x)
+
+struct SoftMax <: UnaryOperator
+    grad_field :: GradField
+end
+
+function forward(::Type{SoftMax}, x)
+    y = x .- maximum(x, dims=2)
+    y = exp.(y)
+    y ./= sum(y, dims=2)
+    return y
+end
+
+
+function backward(f::SoftMax, gy::TensorTypes)
+    y = f.grad_field.output
+    gx = y * gy
+    sumdx = sum(gx, dims=2)
+    sgx = gx - (y * sumdx)
+    return sgx 
+end
+
+softmax(x) = call!(SoftMax, x)

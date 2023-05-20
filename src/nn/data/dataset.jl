@@ -10,6 +10,6 @@ function Base.length(dataset::Dataset)
 end
 
 function Base.getindex(dataset::Dataset, index)
-    return dataset.X[index, :], dataset.y[index]
+    return dataset.X[index, :], dataset.y[index, :]
 end
 

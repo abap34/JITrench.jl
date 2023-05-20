@@ -1,3 +1,5 @@
+import Base
+
 struct FillField{T <: Tuple} <: AdditionalField
     out_shape ::T
 end
@@ -16,3 +18,5 @@ function backward(f::Fill, gy)
     out_shape = f.additional_field.out_shape
     return out_shape .* gy
 end
+
+Base.fill(x::Scalar, v, shape) = call!(Fill, FillField(shape), v)

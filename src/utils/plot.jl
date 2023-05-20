@@ -65,7 +65,7 @@ end
 
 function _dot_func(f::AutoDiff.BroadcastWrapper)
     f_type = typeof(f)
-    f_name = split(split(repr(f_type), ".")[end], "{")[begin]
+    f_name = "BroadcastWrapper{" * split(split(repr(f_type), "{")[2], ".")[end]
     txt = "$(objectid(f)) [label=\"$(f_name)\", color=\"$(colors["func"])\", style=filled, shape=box]\n"
     for x in f.wrapped_func.grad_field.inputs
         txt *= "$(objectid(x)) -> $(objectid(f))\n"
