@@ -1,4 +1,4 @@
-function logsumexp!(arr::AbstractArray; dims=1)
+function logsumexp!(arr::AbstractArray, dims=1)
     m = maximum(arr, dims=dims)
     arr .-= m
     arr .= exp.(arr)
