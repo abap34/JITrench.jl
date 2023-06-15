@@ -1,13 +1,26 @@
+using CUDA
+
 struct MeanSquaredError <: BinaryOperator
     grad_field :: GradField
 end
 
 forward(::Type{MeanSquaredError}, x1, x2) = sum((x1 - x2).^2) / length(x1)
 
+function _mse_backward(diff::Tensor, gy)
+    return  (fill(2gy, size(diff)) .* diff) / length(diff)
+end
+
+
+function _mse_backward(diff::CuTensor, gy)
+    return (CuArray(fill(2gy, size(diff))) .* diff) / length(diff)
+end
+
+
+
 function backward(f::MeanSquaredError, gy::ScalarTypes)
     x1, x2 = f.grad_field.inputs
     diff = x1 - x2
-    gx1 = (fill(2gy, size(diff)) .* diff) / length(diff)
+    gx1 = _mse_backward(diff, gy)
     return gx1, -gx1
 end
 
