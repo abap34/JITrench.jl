@@ -1,6 +1,7 @@
 using .AutoDiff
 import .AutoDiff: forward, backward, call!
 import Base
+using GPUArraysCore
 
 struct Add <: BinaryOperator
     grad_field::GradField
@@ -102,6 +103,9 @@ Base.:+(::T, ::S) where {T <: CuTensor, S <: AbstractArray} =
 Base.:+(::S, ::T) where {T <: CuTensor, S <: AbstractArray} =
     NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
 
+Base.:+(x1::T, x2::S) where {T <: CuTensor, S <: GPUArraysCore.AbstractGPUArray} = call!(Add, x1, CuTensor(x2))
+Base.:+(x1::S, x2::T) where {T <: CuTensor, S <: GPUArraysCore.AbstractGPUArray} = call!(Add, CuTensor(x1), x2)
+
 Base.:+(x1::AbstractTensor, x2::Real) = call!(Add, x1, Scalar(x2))
 Base.:+(x1::Real, x2::AbstractArray) = call!(Add, Scalar(x1), x2)
 Base.:+(x1::AbstractArray, x2::Scalar) = call!(Add, Tensor(x1), x2)
@@ -152,8 +156,11 @@ Base.:-(::CuTensor, ::AbstractArray) =
 Base.:-(::S, ::T) where {T <: CuTensor, S <: AbstractArray} =
     NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
 
-Base.:-(x::Variable) = call!(Neg, x)
+Base.:-(x1::T, x2::S) where {T <: CuTensor, S <: GPUArraysCore.AbstractGPUArray} = call!(Sub, x1, CuTensor(x2))
+Base.:-(x1::S, x2::T) where {T <: CuTensor, S <: GPUArraysCore.AbstractGPUArray} = call!(Sub, CuTensor(x1), x2)
 
+
+Base.:-(x::Variable) = call!(Neg, x)
 
 Base.:-(x1::AbstractTensor, x2::Real) = call!(Sub, x1, Scalar(x2))
 Base.:-(x1::Real, x2::AbstractTensor) = call!(Sub, Scalar(x1), x2)
@@ -204,6 +211,11 @@ Base.:*(::CuTensor, ::AbstractArray) =
 Base.:*(::AbstractArray, ::CuTensor) =
     NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
 
+Base.:*(x1::CuTensor, x2::GPUArraysCore.AbstractGPUArray) = call!(Mul, x1, CuTensor(x2))
+Base.:*(x1::GPUArraysCore.AbstractGPUArray, x2::CuTensor) = call!(Mul, CuTensor(x1), x2)
+
+    
+
 Base.:/(x1::Scalar, x2::Scalar) = call!(Div, x1, x2)
 Base.:/(x1::Scalar, x2::Real) = call!(Div, x1, Scalar(x2))
 Base.:/(x1::Real, x2::Scalar) = call!(Div, Scalar(x1), x2)
@@ -213,10 +225,8 @@ Base.:/(x1::Tensor, x2::AbstractArray) = call!(Div, x1, Tensor(x2))
 Base.:/(x1::AbstractArray, x2::Tensor) = call!(Div, Tensor(x1), x2)
 
 Base.:/(x1::CuTensor, x2::CuTensor) = call!(Div, x1, x2)
-Base.:/(::CuTensor, ::AbstractArray) =
-    NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
-Base.:/(::AbstractArray, ::CuTensor) =
-    NotSameDeviceError(same_accelerator = false, same_gpu_idx = false)
+Base.:/(x1::CuTensor, x2::GPUArraysCore.AbstractGPUArray) = call!(Div, x1, x2)
+Base.:/(x1::GPUArraysCore.AbstractGPUArray, x2::CuTensor) = call!(Div, x1, x2)
 
 function Base.:/(x1::AbstractTensor, x2::AbstractTensor)
     if check_broadcastable(x1, x2)
