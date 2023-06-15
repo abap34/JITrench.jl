@@ -1,4 +1,5 @@
 using DataStructures
+using GPUArraysCore
 
 using ..JITrench
 
@@ -37,7 +38,8 @@ function out_to_tensor(
     creator = nothing,
     grad = nothing,
     req_broadcast = false,
-)   return Tensor(
+)   
+    return Tensor(
         y,
         creator = creator,
         grad = grad,
@@ -47,13 +49,14 @@ function out_to_tensor(
 end
 
 function out_to_tensor(
-    y::CuArray,
-    generation::Int,
-    device_idx::Int;
+    y::GPUArraysCore.AbstractGPUArray,
+    generation::Int;
+    device_idx=0::Int,
     creator = nothing,
     grad = nothing,
     req_broadcast = false,
-) return CuTensor(
+) 
+    return CuTensor(
         y,
         creator = creator,
         grad = grad,
@@ -531,9 +534,9 @@ function backward!(y::Scalar; retain_grad = false, create_graph = false)
     seen_set = Set{DiffableFunction}()
     if y.grad isa Nothing
         if create_graph
-            y.grad = ones_like(y)
+            y.grad = Scalar(1.0)
         else
-            y.grad = ones_like(y.values)
+            y.grad = 1.0
         end
     end
     DataStructures.enqueue!(que, y.creator, 1)

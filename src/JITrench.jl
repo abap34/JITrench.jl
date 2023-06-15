@@ -11,6 +11,9 @@ include("core/autodiff/autodiff.jl")
 
 export AutoDiff, DiffableFunction, backward!, Scalar, AbstractTensor, Tensor, CuTensor
 
+Device = AutoDiff.Device
+GPU = AutoDiff.GPU
+CPU = AutoDiff.CPU
 
 include("core/functions.jl")
 

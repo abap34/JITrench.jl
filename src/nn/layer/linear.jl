@@ -4,7 +4,9 @@ struct LinearFn <: DiffableFunction
     grad_field :: GradField
 end
 
-JITrench.forward(::Type{LinearFn}, x, W, b) = x * W .+ b
+function JITrench.forward(::Type{LinearFn}, x, W, b) 
+    return x * W .+ b
+end
 
 function JITrench.backward(f::LinearFn, gy)
     x, W, b = f.grad_field.inputs
@@ -27,6 +29,7 @@ end
 
 function (linear::Linear)(initializer::Initializer)
     in_dim = initializer.current_shape[2]
+    device = initializer.device
     if !(linear.in_dim isa Nothing)
         if in_dim != linear.in_dim
             # TODO: impl Error
@@ -42,8 +45,13 @@ function (linear::Linear)(initializer::Initializer)
         W = linear.nitial_method(in_dim, out_dim)
     end
     
-    W = Tensor(W, name="W")
-    b = Tensor(zeros(1, out_dim), name="b")
+    if device isa CPU
+        W = Tensor(W, name="W")
+        b = Tensor(zeros(1, out_dim), name="b")
+    elseif device isa GPU
+        W = CuTensor(W, name="W")
+        b = CuTensor(zeros(1, out_dim), name="b")
+    end
 
     register!(
         initializer, 

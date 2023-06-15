@@ -27,12 +27,12 @@ function (layer::Layer)(ctx::ComputeContext)
     return ctx
 end
 
-function apply(model::Function, x::AbstractTensor, param::Parameter)
+function apply(model::Function, x::T, param::Parameter) where T
     name_controller = DefaultDict{String, Int}(0)
     for key in keys(param)
         name_controller[key] = 0
     end
-    model(ComputeContext(x, param, name_controller))
+    model(ComputeContext{T}(x, param, name_controller))
 end
 
 function result(ctx::ComputeContext)
