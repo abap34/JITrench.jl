@@ -534,9 +534,9 @@ function backward!(y::Scalar; retain_grad = false, create_graph = false)
     seen_set = Set{DiffableFunction}()
     if y.grad isa Nothing
         if create_graph
-            y.grad = ones_like(y)
+            y.grad = Scalar(1.0)
         else
-            y.grad = ones_like(y.values)
+            y.grad = 1.0
         end
     end
     DataStructures.enqueue!(que, y.creator, 1)
