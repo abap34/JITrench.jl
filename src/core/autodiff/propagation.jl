@@ -1,4 +1,5 @@
 using DataStructures
+using GPUArraysCore
 
 using ..JITrench
 
@@ -37,7 +38,8 @@ function out_to_tensor(
     creator = nothing,
     grad = nothing,
     req_broadcast = false,
-)   return Tensor(
+)   
+    return Tensor(
         y,
         creator = creator,
         grad = grad,
@@ -47,13 +49,14 @@ function out_to_tensor(
 end
 
 function out_to_tensor(
-    y::CuArray,
-    generation::Int,
-    device_idx::Int;
+    y::GPUArraysCore.AbstractGPUArray,
+    generation::Int;
+    device_idx=0::Int,
     creator = nothing,
     grad = nothing,
     req_broadcast = false,
-) return CuTensor(
+) 
+    return CuTensor(
         y,
         creator = creator,
         grad = grad,
