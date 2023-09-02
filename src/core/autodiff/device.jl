@@ -6,7 +6,7 @@ struct GPU <: Device
     idx::Int64
     function GPU(idx::Int64)
         if idx < 0
-            # TODO: implement Error
+            throw(ArgumentError("GPU index must be non-negative. Passed idx: $idx"))
         end
         return new(idx)
     end

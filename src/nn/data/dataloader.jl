@@ -6,16 +6,17 @@ struct DataLoader
     batch_size :: Int
     shuffle :: Bool
     index :: Vector{Int}
-    function DataLoader(dataset; batch_size=1, shuffle=false)
+    function DataLoader(dataset; batch_size::Int=1, shuffle=false)
+        if loader.batch_size > length(loader.dataset)
+            throw(DomainError("Batch size must be less than or equal to the length of dataset. Batch size: $(loader.batch_size), Dataset length: $(length(loader.dataset))"))
+        elseif loader.batch_size < 1
+            throw(DomainError("Batch size must be greater than or equal to 1. Batch size: $(loader.batch_size)"))
+        end
         new(dataset, batch_size, shuffle, zeros(Int, length(dataset)))
     end
 end
 
 function Base.iterate(loader::DataLoader)
-    if loader.batch_size > length(loader.dataset)
-        # TODO: better error
-        throw(DomainError("batch size > data length error"))
-    end
     loader.index .= randperm(length(loader.dataset))
     data = loader.dataset[1:loader.batch_size]
     head = loader.batch_size + 1

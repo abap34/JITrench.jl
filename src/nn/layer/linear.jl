@@ -32,8 +32,7 @@ function (linear::Linear)(initializer::Initializer)
     device = initializer.device
     if !(linear.in_dim isa Nothing)
         if in_dim != linear.in_dim
-            # TODO: impl Error
-            throw(DimensionMismatch(""))
+            throw(DimensionMismatch("Input dimension $in_dim does not match the expected dimension $(linear.in_dim)"))
         end
     end
     out_dim = linear.out_dim

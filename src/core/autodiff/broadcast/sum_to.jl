@@ -20,7 +20,7 @@ function sum_to(x::T, out_shape) where {T <: AbstractArray}
         dims = (findall(in_shape[1:(end - lead)] .!= out_shape)..., lead_axis...)
         return dropdims(sum(x, dims = dims), dims = lead_axis)
     else
-        # TODO:implement error
+        throw(DimensionMismatch("Input shape $in_shape cannot be reduced to $out_shape"))
     end
 end
 

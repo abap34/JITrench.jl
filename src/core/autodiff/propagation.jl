@@ -3,17 +3,13 @@ using GPUArraysCore
 
 using ..JITrench
 
-struct NotImplementedError <: Exception end
-
-# TODO: Better error massage
-Base.showerror(io::IO, e::NotImplementedError) = print(io, "Not Implemented")
 
 function forward(args...)
-    throw(NotImplementedError())
+    throw(ArgumentError("Not Implemented forward function. args: $args"))
 end
 
 function backward(args...)
-    throw(NotImplementedError())
+    throw(ArgumentError("Not Implemented backward function. args: $args"))
 end
 
 function out_to_tensor(

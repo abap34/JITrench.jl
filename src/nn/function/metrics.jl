@@ -1,6 +1,5 @@
 function accuracy(::AbstractArray{<:AbstractFloat}, ::AbstractArray{<:AbstractFloat})
-    # TODO impl error
-    throw(DomainError(""))
+    throw(DomainError("Accuracy is not defined for floating point arrays."))
 end
     
 
