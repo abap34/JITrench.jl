@@ -1,7 +1,19 @@
 using ..JITrench 
 using DataStructures: OrderedDict, DefaultDict
 
-Parameter = OrderedDict{String, Dict{String, <: AbstractTensor}}
+struct Parameter
+    weight :: OrderedDict{String, Dict{String, <: AbstractTensor}}
+    layer_names :: Vector{String}
+    meta :: Dict{String, Any}
+    function Parameter(weight::OrderedDict{String, Dict{String, <: AbstractTensor}})
+        layer_names = Vector{String}(undef, length(weight))
+        for (i, key) in enumerate(keys(weight))
+            layer_names[i] = key
+        end
+        return new(weight, layer_names, Dict{String, Any}())
+    end
+end
+
 
 abstract type Layer end
 
