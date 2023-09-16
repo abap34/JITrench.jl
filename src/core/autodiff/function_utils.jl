@@ -1,8 +1,12 @@
 using DataStructures
 
+"""
+    get_values(x)
+
+Get values from `x`. If `x` is `Variable`, return `x.values`. Otherwise, return `x`.
+"""
 @inline get_values(x::T) where {T <: Variable} = x.values
 @inline get_values(x) = x
-
 
 @inline ones_like(::R) where {R <: Real} = one(R)
 
