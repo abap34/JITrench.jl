@@ -501,6 +501,16 @@ function set_grad!(x::Variable, gx::Variable; nograd=true)
 end
 
 
+# set not variable grad for x
+function set_grad!(x::Variable, gx; nograd=true)
+    if x.grad isa Nothing
+        x.grad = gx
+    else
+        x.grad = x.grad + gx
+    end
+end
+
+
 @inline function update_que!(
     f::DiffableFunction,
     seen_set::Set{DiffableFunction},
