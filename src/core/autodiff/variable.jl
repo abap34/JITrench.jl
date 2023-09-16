@@ -1,14 +1,25 @@
 using CUDA
 import Base
 
+"""
+    Scalar{T <: Real} <: Variable
 
+Scalar variable.
+"""
 mutable struct Scalar{T <: Real} <: Variable
+    "Values of the Variable."
     values::T
+    "Creator of the Variable. This corresponds to the parent node in a computational graph. If this Variable is created by user, this field is `nothing`." 
     creator::Union{Nothing, DiffableFunction}
+    "Gradient of the Variable."
     grad::Union{Nothing, Scalar, Real}
+    "Generation of the Variable. This corresponds to evaluation order priority of the Variable in backward pass."
     generation::Int
+    "Name of the Variable."
     name::Union{Nothing, String}
+    "If true, this variable requests reshaping by broadcast. This is not a field that is normally manipulated by the user."
     req_broadcast::Bool
+    "Device of the Variable. `Scalar` is always on CPU."
     device::CPU
     function Scalar(
         values::T;
@@ -22,15 +33,33 @@ mutable struct Scalar{T <: Real} <: Variable
     end
 end
 
+"""
+    AbstractTensor <: Variable
+
+Abstract tensor variable. Super type of `Tensor` and `CuTensor`.
+"""
 abstract type AbstractTensor <: Variable end
 
+
+"""
+    Tensor{T <: AbstractArray} <: AbstractTensor
+
+Tensor variable. This Variable is used for CPU.
+"""
 mutable struct Tensor{T <: AbstractArray} <: AbstractTensor
+    "Values of the Variable."
     values::T
+    "Creator of the Variable. This corresponds to the parent node in a computational graph. If this Variable is created by user, this field is `nothing`."
     creator::Union{Nothing, DiffableFunction}
+    "Gradient of the Variable."
     grad::Union{Nothing, Tensor, AbstractArray}
+    "Generation of the Variable. This corresponds to evaluation order priority of the Variable in backward pass."
     generation::Int
+    "Name of the Variable."
     name::Union{Nothing, String}
+    "If true, this variable requests reshaping by broadcast. This is not a field that is normally manipulated by the user."
     req_broadcast::Bool
+    "Device of the Variable. This is always `CPU`."
     device::CPU
     function Tensor(
         values::T;
@@ -45,12 +74,19 @@ mutable struct Tensor{T <: AbstractArray} <: AbstractTensor
 end
 
 mutable struct CuTensor{T <: CuArray} <: AbstractTensor
+    "Values of the Variable."
     values::T
+    "Creator of the Variable. This corresponds to the parent node in a computational graph. If this Variable is created by user, this field is `nothing`."
     creator::Union{Nothing, DiffableFunction}
+    "Gradient of the Variable."
     grad::Union{Nothing, CuTensor, AbstractArray}
+    "Generation of the Variable. This corresponds to evaluation order priority of the Variable in backward pass."
     generation::Int
+    "Name of the Variable."
     name::Union{Nothing, String}
+    "If true, this variable requests reshaping by broadcast. This is not a field that is normally manipulated by the user."
     req_broadcast::Bool
+    "Device of the Variable. This is always `GPU`."
     device::GPU
     function CuTensor(
         values::T;
