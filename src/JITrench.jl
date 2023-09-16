@@ -14,6 +14,7 @@ export AutoDiff, DiffableFunction, backward!, Scalar, AbstractTensor, Tensor, Cu
 Device = AutoDiff.Device
 GPU = AutoDiff.GPU
 CPU = AutoDiff.CPU
+check_same_device = AutoDiff.check_same_device
 
 include("core/functions.jl")
 
