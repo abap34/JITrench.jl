@@ -1,26 +1,26 @@
 using .AutoDiff
-import .AutoDiff: forward, backward, call!
+import .AutoDiff: forward, backward, call!, @diffable
 import Base
 using GPUArraysCore
 
-struct Add <: BinaryOperator
+@diffable struct Add <: BinaryOperator
     grad_field::GradField
 end
 
-struct Sub <: BinaryOperator
+@diffable struct Sub <: BinaryOperator
     grad_field::GradField
 end
 
-struct Neg <: UnaryOperator
+@diffable struct Neg <: UnaryOperator
     grad_field::GradField
 end
 
-struct Mul <: BinaryOperator
+@diffable struct Mul <: BinaryOperator
     grad_field::GradField
 end
 
 
-struct Div <: BinaryOperator
+@diffable struct Div <: BinaryOperator
     grad_field::GradField
 end
 
@@ -28,7 +28,7 @@ struct PowField{T} <: AdditionalField
     c::T
 end
 
-struct Pow{T} <: UnaryOperator
+@diffable struct Pow{T} <: UnaryOperator
     grad_field::GradField
     additional_field::PowField{T}
 end
@@ -278,35 +278,35 @@ end
 
 
 
-struct Sin <: UnaryOperator
+@diffable struct Sin <: UnaryOperator
     grad_field::GradField
 end
 
-struct Cos <: UnaryOperator
+@diffable struct Cos <: UnaryOperator
     grad_field::GradField
 end
 
-struct Tan <: UnaryOperator
+@diffable struct Tan <: UnaryOperator
     grad_field::GradField
 end
 
-struct Log <: UnaryOperator
+@diffable struct Log <: UnaryOperator
     grad_field::GradField
 end
 
-struct Exp <: UnaryOperator
+@diffable struct Exp <: UnaryOperator
     grad_field::GradField
 end
 
-struct Square <: UnaryOperator
+@diffable struct Square <: UnaryOperator
     grad_field::GradField
 end
 
-struct Sqrt <: UnaryOperator
+@diffable struct Sqrt <: UnaryOperator
     grad_field::GradField
 end
 
-struct Inv <: UnaryOperator
+@diffable struct Inv <: UnaryOperator
     grad_field::GradField
 end
 
@@ -489,7 +489,7 @@ struct ClampField{S <: Number, T <: Number} <: AdditionalField
     hi :: T
 end
 
-struct Clamp{S, T} <: UnaryOperator
+@diffable struct Clamp{S, T} <: UnaryOperator
     grad_field :: GradField
     additional_field :: ClampField{S, T}
 end

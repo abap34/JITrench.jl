@@ -2,7 +2,7 @@ module AutoDiff
 
 abstract type JTFunction end
 abstract type Variable end
-abstract type DiffableFunction  <: JTFunction end
+abstract type DiffableFunction <: JTFunction end
 
 
 include("device.jl")
@@ -16,10 +16,12 @@ include("broadcast/sum_to.jl")
 include("broadcast/broadcast_to.jl")
 
 
-const ScalarTypes = Union{Real, Scalar}
-const TensorTypes = Union{AbstractArray, Tensor, CuTensor}
+const ScalarTypes = Union{Real,Scalar}
+const TensorTypes = Union{AbstractArray,Tensor,CuTensor}
 
-export DiffableFunction,
+export
+    check_same_device,
+    DiffableFunction,
     BinaryOperator,
     UnaryOperator,
     GradField,

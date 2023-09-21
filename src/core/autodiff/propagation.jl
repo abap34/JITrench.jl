@@ -3,14 +3,72 @@ using GPUArraysCore
 
 using ..JITrench
 
+"""
+    forward(F::Type{DiffableFunction}, args...)
 
-function forward(args...)
+Definition of forward calculation of F.
+This function must be implemented for each `DiffableFunction`.
+This function is called by `call!` function with `values` of inputs.
+
+# Arguments
+- `F::Type{DiffableFunction}` : Type of `DiffableFunction` which is called.
+- `args...` : `values` of inputs.
+
+# Returns
+- `y` : `values` of output.
+
+# Example
+```julia-repl
+julia>julia> JITrench.AutoDiff.forward(JITrench.Add, 1, 2)
+3
+```
+"""
+function forward(F::Type{DiffableFunction}, args...)
     throw(ArgumentError("Not Implemented forward function. args: $args"))
 end
 
-function backward(args...)
+"""
+    backward(f::DiffableFunction, gy)
+
+Definition of backward calculation of F.
+This function must be implemented for each `DiffableFunction`.
+
+# Arguments
+- `F::DiffableFunction` : Instance of `DiffableFunction` which is called.
+- `gy` : propageted gradient from output.
+
+# Returns
+- `gxs...` : propageted gradient to inputs.
+
+# Example
+```julia-repl
+julia>julia> JITrench.AutoDiff.backward(f, 1)
+(1, 1)
+```
+"""
+function backward(f::DiffableFunction, gy)
     throw(ArgumentError("Not Implemented backward function. args: $args"))
 end
+
+
+
+"""
+    out_to_tensor(y, generation; creator=nothing, grad=nothing, req_broadcast=false)
+
+Convert output of `forward` function to appropriate `Variable.` (e.g. `Scalar`, `Tensor`, `CuTensor`)
+
+# Arguments
+- `y` : `values` of output.
+- `generation` : `generation` of output.
+- `creator` : `creator` of output.
+- `grad` : `grad` of output.
+- `req_broadcast` : `req_broadcast` of output.
+
+# Returns
+- `out` : `Variable` which is converted from `y`.   
+"""
+function out_to_tensor end
+
 
 function out_to_tensor(
     y::Real,
@@ -62,6 +120,27 @@ function out_to_tensor(
     )
 end
 
+
+"""
+    make_func(::Type{F}, y, inputs, gen)
+
+Create `DiffableFunction` instance from `y`, `inputs` and `gen`.
+"""
+function make_func end
+
+
+"""
+    make_func(::Type{F}, additional_field, y, inputs, gen)
+
+Create `DiffableFunction` instance from `additional_field`, `y`, `inputs` and `gen`.
+
+# Arguments
+- `F::Type{F}` : Type of `DiffableFunction` which is created.
+- `additional_field` : `additional_field` for `F`.
+- `y` : `values` of output.
+- `inputs` : `inputs` of `F`.
+- `gen` : `generation` of output.
+"""
 @inline function make_func(
     ::Type{F},
     additional_field,
@@ -75,7 +154,17 @@ end
     return func
 end
 
+"""
+    make_func(::Type{F}, y, inputs, gen)
 
+Create `DiffableFunction` instance from  `y`, `inputs` and `gen`.
+
+# Arguments
+- `F::Type{F}` : Type of `DiffableFunction` which is created.
+- `y` : `values` of output.
+- `inputs` : `inputs` of `F`.
+- `gen` : `generation` of output.
+"""
 @inline function make_func(::Type{F}, y, inputs, gen) where {F <: DiffableFunction}
     gf = GradField(inputs, out_to_tensor(y, gen), gen)
     func = F(gf)
@@ -83,6 +172,19 @@ end
     return func
 end
 
+
+
+"""
+    make_func(::Type{F}, y::CuArray, inputs, gen, device_idx)
+
+Create `DiffableFunction` instance from  `y`,  `inputs` , `gen` and `device_idx`.
+
+# Arguments
+- `F::Type{F}` : Type of `DiffableFunction` which is created.
+- `y` : `values` of output which is `CuArray`.
+- `inputs` : `inputs` of `F`.
+- `gen` : `generation` of output.
+"""
 @inline function make_func(
     ::Type{F},
     y::T,
@@ -90,12 +192,83 @@ end
     gen,
     device_idx,
 ) where {T <: CuArray, F <: DiffableFunction}
-    gf = GradField(inputs, out_to_tensor(y, gen, device_idx), gen)
+    gf = GradField(inputs, out_to_tensor(y, gen, device_idx=device_idx), gen)
     func = F(gf)
     gf.output.creator = func
     return func
 end
 
+
+function Base.broadcasted(f::Function, x::T) where T <: AbstractTensor
+    x.req_broadcast = true
+    y = f(x)
+    y.req_broadcast = false
+    return y
+end
+
+
+function Base.broadcasted(f::Function, x1::Variable, x2::Variable) 
+    x1.req_broadcast = true
+    x2.req_broadcast = true
+    y = f(x1, x2)
+    if !(JITrench.nograd)
+        y.req_broadcast = false
+    end
+    return y
+end
+
+
+function Base.broadcasted(f::Function, x1::Variable, x2) 
+    x1.req_broadcast = true
+    y = f(x1, x2)
+    if !(JITrench.nograd)
+        y.req_broadcast = false
+    end
+    return y
+end
+
+function Base.broadcasted(f::Function, x1, x2::Variable) 
+    x2.req_broadcast = true
+    y = f(x1, x2)
+    if !(JITrench.nograd)
+        y.req_broadcast = false
+    end
+    return y
+end
+
+
+"""
+    call!(F::Type{<:DiffableFunction}, xs...::Variable)
+
+Call JITrench function with `xs...` as inputs.
+"""
+function call! end
+
+
+"""
+    call!(F::Type{<:DiffableFunction}, xs...::Variable)
+
+Call JITrench function with `xs...` as inputs.
+
+# Arguments
+- `F::Type{<:DiffableFunction}` : Type of `DiffableFunction` which is called.
+- `xs...::Variable` : `Variable` which is passed to `F`.
+
+# Returns
+- `y` : `values` of output.
+
+# Example
+```julia-repl
+julia> x = Scalar(3)
+Scalar{Int64}(3)
+
+julia> y = Scalar(4)
+Scalar{Int64}(4)
+
+julia> JITrench.AutoDiff.call!(JITrench.Add, x, y)
+Scalar{Int64}(7)
+```
+"""
 function call!(F::Type{<:DiffableFunction}, xs::Variable...)
     for x in xs
         if x.req_broadcast
@@ -134,8 +307,6 @@ function call!(
     inputs = (x1, x2)
     y = forward(F, x1.values, x2.values)
     if (JITrench.nograd)
-        println("nograad!!!!!!")
-        println("return:", y)
         return y
     end
     (JITrench.nograd) && (return y)
@@ -165,6 +336,31 @@ end
 
 
 
+"""
+    call!(F::Type{<:DiffableFunction}, additional_field::AdditionalField, xs...::Variable)
+
+Call JITrench function with `xs...` as inputs, and `additional_field` as optional argument.
+
+# Arguments
+- `F::Type{<:DiffableFunction}` : Type of `DiffableFunction` which is called.
+- `additional_field::AdditionalField` : `AdditionalField` which is passed to `F`.
+- `xs...::Variable` : `Variable` which is passed to `F`.
+
+# Returns
+- `y` : `values` of output.
+
+# Example
+```julia-repl
+julia> x = Scalar(3)
+Scalar{Int64}(3)
+
+julia> y = JITrench.AutoDiff.call!(JITrench.Pow, JITrench.PowField(3), x)
+Scalar{Int64}(27)
+
+julia> y = JITrench.AutoDiff.call!(JITrench.Pow, JITrench.PowField(2), x)
+Scalar{Int64}(9)
+```
+"""
 function call!(
     F::Type{<:UnaryOperator},
     additional_field::AdditionalField,
@@ -212,10 +408,80 @@ end
 
 
 
-@inline ones_like(x::CuTensor) =
-    CuTensor(ones(eltype(x.values), size(x.values)), device_idx = x.device.idx)
+function call!(f::Type{BroadcastWrapper{F}}, additional_field::AdditionalField, x1::Variable, x2::Variable, nograd=false) where F <: BinaryOperator
+    y = forward.(Ref(F), Ref(additional_field), x1.values, x2.values)
+    (nograd) && (return y)
+    x1.req_broadcast = false
+    x2.req_broadcast = false
+    inputs = (x1, x2)
+    gen = min(x1.generation, x2.generation)
+    gf = GradField(
+        inputs, 
+        out_to_tensor(y, gen),
+        gen
+    )
+    wrapped_func = F(gf, additional_field)
+    func = BroadcastWrapper{F}(wrapped_func)
+    wrapped_func.grad_field.output.creator = func
+    return wrapped_func.grad_field.output
+end
 
-@inline get_gy(f::DiffableFunction) = f.grad_field.output.grad
+function call!(f::Type{BroadcastWrapper{F}},  x::Variable) where F <: UnaryOperator
+    y = forward.(Ref(F), x.values)
+    (JITrench.nograd) && (return y)
+    x.req_broadcast = false
+    inputs = (x, )
+    gf = GradField(
+        inputs, 
+        out_to_tensor(y, x.generation),
+        x.generation
+    )
+    wrapped_func = F(gf)
+    func = BroadcastWrapper{F}(wrapped_func)
+    wrapped_func.grad_field.output.creator = func
+    return wrapped_func.grad_field.output
+end
+
+
+function call!(f::Type{BroadcastWrapper{F}},  x1::Variable, x2::Variable) where F <: BinaryOperator
+    y = forward.(Ref(F), x1.values, x2.values)
+    (JITrench.nograd) && (return y)
+    x1.req_broadcast = false
+    x2.req_broadcast = false
+    inputs = (x1, x2)
+    gen = min(x1.generation, x2.generation)
+    gf = GradField(
+        inputs, 
+        out_to_tensor(y, gen),
+        gen
+    )
+    wrapped_func = F(gf)
+    func = BroadcastWrapper{F}(wrapped_func)
+    wrapped_func.grad_field.output.creator = func
+    return wrapped_func.grad_field.output
+end
+
+
+
+
+function call!(f::Type{BroadcastWrapper{F}}, additional_field::AdditionalField, x::Variable, nograd=false) where F <: UnaryOperator
+    y = forward.(Ref(F), Ref(additional_field), x.values)
+    (nograd) && (return y)
+    x.req_broadcast = false
+    inputs = (x, )
+    gf = GradField(
+        inputs, 
+        out_to_tensor(y, x.generation),
+        x.generation
+    )
+    wrapped_func = F(gf, additional_field)
+    func = BroadcastWrapper{F}(wrapped_func)
+    wrapped_func.grad_field.output.creator = func
+    return wrapped_func.grad_field.output
+end
+
+
+
 
 function set_grad!(x::Variable, gx::Variable; nograd=true)
     if nograd
@@ -234,6 +500,8 @@ function set_grad!(x::Variable, gx::Variable; nograd=true)
     end
 end
 
+
+# set not variable grad for x
 function set_grad!(x::Variable, gx; nograd=true)
     if x.grad isa Nothing
         x.grad = gx
@@ -348,118 +616,6 @@ function calculate_grad!(
     return nothing
 end
 
-
-
-function call!(f::Type{BroadcastWrapper{F}}, additional_field::AdditionalField, x::Variable, nograd=false) where F <: UnaryOperator
-    y = forward.(Ref(F), Ref(additional_field), x.values)
-    (nograd) && (return y)
-    x.req_broadcast = false
-    inputs = (x, )
-    gf = GradField(
-        inputs, 
-        out_to_tensor(y, x.generation),
-        x.generation
-    )
-    wrapped_func = F(gf, additional_field)
-    func = BroadcastWrapper{F}(wrapped_func)
-    wrapped_func.grad_field.output.creator = func
-    return wrapped_func.grad_field.output
-end
-
-
-
-
-function call!(f::Type{BroadcastWrapper{F}}, additional_field::AdditionalField, x1::Variable, x2::Variable, nograd=false) where F <: BinaryOperator
-    y = forward.(Ref(F), Ref(additional_field), x1.values, x2.values)
-    (nograd) && (return y)
-    x1.req_broadcast = false
-    x2.req_broadcast = false
-    inputs = (x1, x2)
-    gen = min(x1.generation, x2.generation)
-    gf = GradField(
-        inputs, 
-        out_to_tensor(y, gen),
-        gen
-    )
-    wrapped_func = F(gf, additional_field)
-    func = BroadcastWrapper{F}(wrapped_func)
-    wrapped_func.grad_field.output.creator = func
-    return wrapped_func.grad_field.output
-end
-
-function call!(f::Type{BroadcastWrapper{F}},  x::Variable) where F <: UnaryOperator
-    y = forward.(Ref(F), x.values)
-    (JITrench.nograd) && (return y)
-    x.req_broadcast = false
-    inputs = (x, )
-    gf = GradField(
-        inputs, 
-        out_to_tensor(y, x.generation),
-        x.generation
-    )
-    wrapped_func = F(gf)
-    func = BroadcastWrapper{F}(wrapped_func)
-    wrapped_func.grad_field.output.creator = func
-    return wrapped_func.grad_field.output
-end
-
-
-function call!(f::Type{BroadcastWrapper{F}},  x1::Variable, x2::Variable) where F <: BinaryOperator
-    y = forward.(Ref(F), x1.values, x2.values)
-    (JITrench.nograd) && (return y)
-    x1.req_broadcast = false
-    x2.req_broadcast = false
-    inputs = (x1, x2)
-    gen = min(x1.generation, x2.generation)
-    gf = GradField(
-        inputs, 
-        out_to_tensor(y, gen),
-        gen
-    )
-    wrapped_func = F(gf)
-    func = BroadcastWrapper{F}(wrapped_func)
-    wrapped_func.grad_field.output.creator = func
-    return wrapped_func.grad_field.output
-end
-
-
-
-function Base.broadcasted(f::Function, x::T) where T <: AbstractTensor
-    x.req_broadcast = true
-    y = f(x)
-    y.req_broadcast = false
-    return y
-end
-
-
-function Base.broadcasted(f::Function, x1::Variable, x2::Variable) 
-    x1.req_broadcast = true
-    x2.req_broadcast = true
-    y = f(x1, x2)
-    if !(JITrench.nograd)
-        y.req_broadcast = false
-    end
-    return y
-end
-
-
-function Base.broadcasted(f::Function, x1::Variable, x2) 
-    x1.req_broadcast = true
-    y = f(x1, x2)
-    if !(JITrench.nograd)
-        y.req_broadcast = false
-    end
-    return y
-end
-
-function Base.broadcasted(f::Function, x1, x2::Variable) 
-    x2.req_broadcast = true
-    y = f(x1, x2)
-    if !(JITrench.nograd)
-        y.req_broadcast = false
-    end
-    return y
-end
     
 
 function calculate_grad!(
@@ -525,6 +681,42 @@ function calculate_grad!(
     return nothing
 end
 
+
+"""
+    backward(y::Scalar; retain_grad = false, create_graph = false)
+
+Clculate the gradient for y for all inputs.
+If `retain_grad` is `true`, all intermediate gradients are retained.
+If `create_graph` is true, the graph of the backward pass is constructed, allowing to compute higher order derivative products.
+
+# Arguments
+- `y` : `Scalar` which is the output of the function. Gradient can be immplicitly created only for `Scalar`.
+- `retain_grad` : If `true`, all intermediate gradients are retained.
+- `create_graph` : If `true`, the graph of the backward pass is constructed, allowing to compute higher order derivative products.
+
+# Returns
+- `nothing`: This function returns nothing. The gradient for each input is stored in `grad` field of each input.
+
+# Example
+```julia-repl
+julia> x = Scalar(3)
+Scalar{Int64}(3)
+
+julia> y = Scalar(2.0)
+Scalar{Float64}(2.0)
+
+julia> z = x * 2y
+Scalar{Float64}(12.0)
+
+julia> backward!(z)
+
+julia> x.grad
+4.0
+
+julia> y.grad
+6.0
+```
+"""
 function backward!(y::Scalar; retain_grad = false, create_graph = false)
     que = DataStructures.PriorityQueue{DiffableFunction, Int}(Base.Order.Reverse)
     seen_set = Set{DiffableFunction}()
