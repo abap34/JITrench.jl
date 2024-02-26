@@ -1,8 +1,9 @@
 # JITrench
 
 
+
 <h1 align="center">
-  <img src=https://cdn.discordapp.com/attachments/810478331790491681/855768153913425930/unknown.png  width=450><br/>
+  <img src=https://www.abap34.com/img/jitrench-head.png  width=450><br/>
 </h1>
 <p align="center">Let's dive into the deep trenches of the loss function <br>with JITrench.jl.</b></p>
 
