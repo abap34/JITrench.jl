@@ -20,7 +20,7 @@ function Base.show(io::IO, ::MIME"image/png", c::PNGContainer)
 end
 
 
-function _dot_var(var::Scalar)
+function _dot_var(var::Scalar, var_label)
     if var.creator === nothing
         color = colors["user_defined_var"]
         shape = shapes["user_defined_var"]
@@ -30,13 +30,19 @@ function _dot_var(var::Scalar)
     end
 
     if var.name !== nothing
-        return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name) : </b>$(var.values)>, color=\"$color\", style=filled]\n"
+        if var_label == :both
+            return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name) : </b>$(typeof(var))\\n$(var.values)>, color=\"$color\", style=filled]\n"
+        elseif var_label == :name
+            return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name) </b>>, color=\"$color\", style=filled]\n"
+        elseif var_label == :values
+            return "$(objectid(var)) [shape=$shape, label=<<b>$(typeof(var))\\n$(var.values)</b>>, color=\"$color\", style=filled]\n"
+        end
     else
         return "$(objectid(var)) [shape=$shape, label=\"$(var.values)\", color=\"$color\", style=filled]\n"
     end
 end
 
-function _dot_var(var::AbstractTensor)
+function _dot_var(var::AbstractTensor, var_label)
     if var.creator === nothing
         color = colors["user_defined_var"]
         shape = shapes["user_defined_var"]
@@ -46,7 +52,13 @@ function _dot_var(var::AbstractTensor)
     end
 
     if var.name !== nothing
-        return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name) : </b>$(typeof(var))>, color=\"$color\", style=filled]\n"
+        if var_label == :both
+            return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name) : </b>$(typeof(var))\\n$(size(var))>, color=\"$color\", style=filled]\n"
+        elseif var_label == :name
+            return "$(objectid(var)) [shape=$shape, label=<<b>$(var.name) </b>>, color=\"$color\", style=filled]\n"
+        elseif var_label == :values
+            return "$(objectid(var)) [shape=$shape, label=<<b>$(typeof(var))\\n$(size(var)) </b>>, color=\"$color\", style=filled]\n"
+        end
     else
         return "$(objectid(var)) [shape=$shape, label=\"Tensor$(size(var))\", color=\"$color\", style=filled]\n"
     end
@@ -74,19 +86,19 @@ function _dot_func(f::AutoDiff.BroadcastWrapper)
     return txt
 end
 
-function get_dot_graph(var, title)
+function get_dot_graph(var, title, var_label)
     txt = ""
     funcs = []
     seen_set = Set{DiffableFunction}()
     push!(funcs, var.creator)
-    txt = _dot_var(var)
+    txt = _dot_var(var, var_label)
     while !(isempty(funcs))
         f = pop!(funcs)
         txt *= _dot_func(f)
         # TODO: avoid conditional branching by type
         if f isa AutoDiff.BroadcastWrapper
             for x in f.wrapped_func.grad_field.inputs
-                txt *= _dot_var(x)
+                txt *= _dot_var(x, var_label)
                 if x.creator !== nothing && (!(x.creator in seen_set))
                     push!(seen_set, x.creator)
                     push!(funcs, x.creator)
@@ -94,7 +106,7 @@ function get_dot_graph(var, title)
             end
         else
             for x in f.grad_field.inputs
-                txt *= _dot_var(x)
+                txt *= _dot_var(x, var_label)
                 if x.creator !== nothing && (!(x.creator in seen_set))
                     push!(seen_set, x.creator)
                     push!(funcs, x.creator)
@@ -145,8 +157,11 @@ creator: JITrench.Add
 julia> JITrench.plot_graph(y, to_file="graph.png") 
 ```
 """
-function plot_graph(var::Variable; to_file = "", title = "")
-    dot_graph = get_dot_graph(var, title)
+function plot_graph(var::Variable; to_file = "", title = "", var_label=:both)
+    if !(var_label in [:both, :name, :values])
+        throw(ArgumentError("var_label must be :both, :name or :values"))
+    end
+    dot_graph = get_dot_graph(var, title, var_label)
 
     # make tmp directory to contain .dot 
     (!(ispath(tmp_dir))) && (mkdir(tmp_dir))
